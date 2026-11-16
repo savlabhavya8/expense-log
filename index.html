@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Expense Log — Step 13</title>
+  <style>
+    :root {
+      --bg: linear-gradient(135deg, #eef2ff 0%, #f8fafc 50%, #ecfeff 100%);
+      --card: #ffffff;
+      --surface: #f8fafc;
+      --text: #0f172a;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --input-border: #cbd5e1;
+      --primary: #4f46e5;
+      --primary-hover: #4338ca;
+      --track: #f1f5f9;
+    }
+    body.dark {
+      --bg: linear-gradient(135deg, #090d16 0%, #0f172a 60%, #111827 100%);
+      --card: #1e293b;
+      --surface: #0f172a;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --border: #334155;
+      --input-border: #475569;
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --track: #334155;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      padding: 28px 16px 64px;
+      margin: 0;
+      min-height: 100vh;
+      transition: background 0.25s ease, color 0.25s ease;
+    }
+    .app {
+      background: var(--card);
+      width: 100%;
+      max-width: 560px;
+      padding: 24px;
+      border-radius: 20px;
+      box-shadow: 0 18px 40px rgba(15, 23, 42, 0.14);
+      border: 1px solid var(--border);
+      align-self: flex-start;
+      transition: background 0.25s ease, border-color 0.25s ease;
+    }
+    .app-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+    .app-title {
+      margin: 0;
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .header-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .icon-btn {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 7px 10px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .icon-btn:hover {
+      opacity: 0.85;
+    }
+    .icon-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      border-color: var(--primary);
+    }
+    .icon-btn.danger:hover,
+    .icon-btn.confirm-danger {
+      background: #fee2e2;
+      color: #b91c1c;
+      border-color: #fca5a5;
+    }
+
+    /* Month Switcher Bar */
+    .month-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 14px;
+      padding: 8px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+    .month-label {
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    #month-input {
+      padding: 5px 8px;
+      font-size: 0.84rem;
+      border-radius: 8px;
+    }
+
+    /* Hero Budget Card */
+    .budget-hero {
+      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 55%, #4338ca 100%);
+      color: #ffffff;
+      border-radius: 16px;
+      padding: 18px 20px;
+      margin-bottom: 18px;
+      box-shadow: 0 10px 24px rgba(67, 56, 202, 0.25);
+    }
+    .hero-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .hero-spent-label {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #c7d2fe;
+      margin-bottom: 4px;
+    }
+    .hero-spent-value {
+      font-size: 1.85rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .budget-pill {
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      padding: 6px 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.82rem;
+      color: #e0e7ff;
+    }
+    #budget-input {
+      width: 94px;
+      background: rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      color: #ffffff;
+      border-radius: 6px;
+      padding: 4px 6px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-align: right;
+    }
+    #budget-input::placeholder {
+      color: #c7d2fe;
+    }
+    .progress-track {
+      width: 100%;
+      height: 10px;
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: #34d399;
+      border-radius: 999px;
+      transition: width 0.3s ease, background-color 0.3s ease;
+    }
+    .hero-bottom {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.82rem;
+      color: #e0e7ff;
+    }
+    .budget-slider-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.15);
+      font-size: 0.74rem;
+      color: #c7d2fe;
+    }
+    #budget-slider {
+      flex: 1;
+      padding: 0;
+      border: none;
+      background: transparent;
+      box-shadow: none;
+      accent-color: #34d399;
+      cursor: pointer;
+    }
+
+    /* Quick Buttons Section */
+    .presets-section {
+      margin-bottom: 14px;
+    }
+    .presets-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .presets-label {
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--muted);
+      margin-right: 2px;
+    }
+    .preset-chip {
+      display: inline-flex;
+      align-items: center;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+      transition: transform 0.1s ease, border-color 0.15s ease;
+    }
+    .preset-chip:hover {
+      border-color: var(--primary);
+      transform: translateY(-1px);
+    }
+    .preset-btn {
+      background: transparent;
+      color: var(--text);
+      border: none;
+      padding: 5px 8px 5px 10px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .preset-remove {
+      background: transparent;
+      color: var(--muted);
+      border: none;
+      padding: 5px 8px 5px 2px;
+      font-size: 0.75rem;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .preset-remove:hover {
+      color: #dc2626;
+    }
+    .add-preset-toggle {
+      background: transparent;
+      color: var(--primary);
+      border: 1px dashed var(--primary);
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .add-preset-toggle:hover {
+      background: rgba(79, 70, 229, 0.08);
+    }
+    .preset-creator {
+      display: none;
+      margin-top: 10px;
+      padding: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      gap: 6px;
+      grid-template-columns: 1.5fr 1fr 1fr auto;
+      align-items: center;
+    }
+    .preset-creator.open {
+      display: grid;
+    }
+    .preset-creator input,
+    .preset-creator select {
+      padding: 7px 9px;
+      font-size: 0.82rem;
+      border-radius: 8px;
+    }
+    .save-preset-btn {
+      padding: 7px 12px;
+      background: var(--primary);
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Form */
+    .expense-form {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    #item-input {
+      grid-column: span 2;
+    }
+    input, select {
+      padding: 10px 12px;
+      border: 1px solid var(--input-border);
+      border-radius: 10px;
+      font-size: 0.92rem;
+      background: var(--card);
+      color: var(--text);
+      min-width: 0;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    input:focus, select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
+    }
+    .form-actions {
+      display: flex;
+      gap: 6px;
+    }
+    button[type="submit"] {
+      flex: 1;
+      padding: 10px 14px;
+      background: var(--primary);
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s ease, transform 0.1s ease;
+    }
+    button[type="submit"]:hover {
+      background: var(--primary-hover);
+    }
+    button[type="submit"]:active {
+      transform: scale(0.98);
+    }
+    .cancel-edit-btn {
+      display: none;
+      padding: 10px 12px;
+      background: var(--card);
+      color: var(--text);
+      border: 1px solid var(--input-border);
+      border-radius: 10px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* Search, Filter & Sort Toolbar */
+    .toolbar {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .toolbar input, .toolbar select {
+      padding: 8px 10px;
+      font-size: 0.85rem;
+      border-radius: 10px;
+    }
+
+    /* Expense List */
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 16px;
+    }
+    li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 14px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 8px;
+      gap: 10px;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      animation: fadeIn 0.2s ease;
+    }
+    li:hover {
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+      transform: translateY(-1px);
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .row-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+    .cat-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.05rem;
+      flex-shrink: 0;
+    }
+    .item-details {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    .item-name {
+      font-weight: 600;
+      font-size: 0.95rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .item-meta {
+      font-size: 0.76rem;
+      color: var(--muted);
+    }
+    .row-right {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .amount-text {
+      font-size: 0.98rem;
+      font-weight: 700;
+      margin-right: 4px;
+    }
+    .mini-btn {
+      border: none;
+      border-radius: 8px;
+      padding: 5px 9px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s ease;
+    }
+    .mini-btn:hover {
+      opacity: 0.85;
+    }
+    .edit-btn {
+      background: #e0e7ff;
+      color: #3730a3;
+    }
+    .delete-btn {
+      background: #fee2e2;
+      color: #dc2626;
+    }
+    .empty {
+      color: var(--muted);
+      font-size: 0.9rem;
+      text-align: center;
+      padding: 20px 12px;
+      justify-content: center;
+      background: var(--surface);
+      border-style: dashed;
+    }
+    .empty:hover {
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* Filtered Total & Visual Breakdown + Donut */
+    .total-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      font-size: 0.95rem;
+      margin-bottom: 16px;
+    }
+    .breakdown-box {
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+    .breakdown-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .breakdown-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+    }
+    .breakdown-hint {
+      font-size: 0.74rem;
+      color: var(--muted);
+    }
+    .breakdown-grid {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 18px;
+      align-items: center;
+    }
+    .donut-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .donut-chart {
+      width: 116px;
+      height: 116px;
+      border-radius: 50%;
+      background: var(--track);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      transition: background 0.3s ease;
+    }
+    .donut-hole {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background: var(--card);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.72rem;
+      color: var(--muted);
+      text-align: center;
+      padding: 4px;
+      transition: background 0.25s ease;
+    }
+    .donut-hole strong {
+      font-size: 0.82rem;
+      color: var(--text);
+    }
+    .breakdown-row {
+      margin-bottom: 8px;
+      padding: 4px 6px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+    }
+    .breakdown-row:hover {
+      background: var(--surface);
+    }
+    .breakdown-row:last-child {
+      margin-bottom: 0;
+    }
+    .breakdown-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.82rem;
+      margin-bottom: 4px;
+    }
+    .breakdown-track {
+      height: 6px;
+      background: var(--track);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .breakdown-fill {
+      height: 100%;
+      border-radius: 999px;
+      transition: width 0.3s ease;
+    }
+    .breakdown-empty {
+      font-size: 0.84rem;
+      color: var(--muted);
+    }
+
+    /* Friendly Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: #0f172a;
+      color: #ffffff;
+      padding: 9px 16px;
+      border-radius: 999px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.25);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      z-index: 100;
+    }
+    body.dark .toast {
+      background: #e2e8f0;
+      color: #0f172a;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 480px) {
+      .toolbar {
+        grid-template-columns: 1fr 1fr;
+      }
+      #search-input {
+        grid-column: span 2;
+      }
+      .preset-creator.open {
+        grid-template-columns: 1fr 1fr;
+      }
+      .breakdown-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="app-header">
+      <h1 class="app-title">💸 Expense Log</h1>
+      <div class="header-actions">
+        <button id="theme-btn" type="button" class="icon-btn" title="Toggle Dark Mode">🌙 Dark</button>
+        <button id="export-csv-btn" type="button" class="icon-btn" title="Download Excel CSV">⬇ CSV</button>
+        <button id="export-doc-btn" type="button" class="icon-btn" title="Download Word Doc">📄 Doc</button>
+        <button id="clear-btn" type="button" class="icon-btn danger" title="Clear all expenses">Clear</button>
+      </div>
+    </div>
+
+    <div class="month-bar">
+      <label class="month-label" for="month-input">
+        📅 Month:
+        <input id="month-input" type="month" />
+      </label>
+      <button id="all-months-btn" type="button" class="icon-btn">All Months</button>
+    </div>
+
+    <div class="budget-hero">
+      <div class="hero-top">
+        <div>
+          <div id="hero-spent-label" class="hero-spent-label">Spent This Month</div>
+          <div id="hero-total" class="hero-spent-value">₹0.00</div>
+        </div>
+        <label class="budget-pill" for="budget-input">
+          Budget ₹
+          <input id="budget-input" type="number" min="0" max="100000" step="any" placeholder="10000" />
+        </label>
+      </div>
+      <div class="progress-track">
+        <div id="progress-fill" class="progress-fill"></div>
+      </div>
+      <div class="hero-bottom">
+        <span id="budget-status">₹10,000.00 remaining</span>
+        <span id="budget-percent">0% used</span>
+      </div>
+      <div class="budget-slider-row">
+        <span>₹1k</span>
+        <input id="budget-slider" type="range" min="1000" max="100000" step="500" value="10000" />
+        <span>₹1L</span>
+      </div>
+    </div>
+
+    <div class="presets-section">
+      <div id="presets-bar" class="presets-bar"></div>
+      <div id="preset-creator" class="preset-creator">
+        <input id="preset-item-input" type="text" placeholder="Quick name (e.g. Metro)" />
+        <input id="preset-amount-input" type="number" placeholder="₹ Amount" min="1" step="any" />
+        <select id="preset-category-input">
+          <option value="Food">🍔 Food</option>
+          <option value="Travel">🚕 Travel</option>
+          <option value="Shopping">🛍️ Shopping</option>
+          <option value="Bills">🧾 Bills</option>
+          <option value="Other">✨ Other</option>
+        </select>
+        <button id="save-preset-btn" type="button" class="save-preset-btn">Save</button>
+      </div>
+    </div>
+
+    <form id="expense-form" class="expense-form">
+      <input id="item-input" type="text" placeholder="What did you spend on? (e.g. Metro ticket, Lunch)" required />
+      <input id="amount-input" type="number" placeholder="₹ Amount" min="1" step="any" required />
+      <input id="date-input" type="date" required />
+      <select id="category-input">
+        <option value="Food">🍔 Food</option>
+        <option value="Travel">🚕 Travel</option>
+        <option value="Shopping">🛍️ Shopping</option>
+        <option value="Bills">🧾 Bills</option>
+        <option value="Other">✨ Other</option>
+      </select>
+      <div class="form-actions">
+        <button id="submit-btn" type="submit">+ Add</button>
+        <button id="cancel-edit-btn" type="button" class="cancel-edit-btn">Cancel</button>
+      </div>
+    </form>
+
+    <div class="toolbar">
+      <input id="search-input" type="search" placeholder="🔍 Search items..." />
+      <select id="filter-input">
+        <option value="All">All Categories</option>
+        <option value="Food">🍔 Food</option>
+        <option value="Travel">🚕 Travel</option>
+        <option value="Shopping">🛍️ Shopping</option>
+        <option value="Bills">🧾 Bills</option>
+        <option value="Other">✨ Other</option>
+      </select>
+      <select id="sort-input">
+        <option value="newest">Newest First</option>
+        <option value="highest">Highest ₹</option>
+        <option value="lowest">Lowest ₹</option>
+      </select>
+    </div>
+
+    <ul id="expense-list"></ul>
+
+    <div class="total-bar">
+      <span id="total-label">Showing All</span>
+      <strong id="total-amount">₹0.00</strong>
+    </div>
+
+    <div class="breakdown-box">
+      <div class="breakdown-header">
+        <div class="breakdown-title">Spending by Category</div>
+        <div class="breakdown-hint">Tap a category to filter</div>
+      </div>
+      <div id="breakdown-container"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    const STORAGE_KEY = 'my_expense_log_v13';
+    const BUDGET_KEY = 'my_expense_log_budget_v13';
+    const THEME_KEY = 'my_expense_log_theme_v13';
+    const PRESETS_KEY = 'my_expense_log_presets_v13';
+
+    const DEFAULT_PRESETS = [
+      { id: 1, item: 'Tea / Coffee', amount: 20, category: 'Food' },
+      { id: 2, item: 'Auto Ride', amount: 50, category: 'Travel' },
+      { id: 3, item: 'Lunch', amount: 150, category: 'Food' },
+      { id: 4, item: 'Groceries', amount: 250, category: 'Shopping' }
+    ];
+
+    const CATEGORY_STYLES = {
+      Food:     { icon: '🍔', bg: '#fef3c7', color: '#d97706' },
+      Travel:   { icon: '🚕', bg: '#dbeafe', color: '#2563eb' },
+      Shopping: { icon: '🛍️', bg: '#fce7f3', color: '#db2777' },
+      Bills:    { icon: '🧾', bg: '#e0e7ff', color: '#4f46e5' },
+      Other:    { icon: '✨', bg: '#f3e8ff', color: '#9333ea' }
+    };
+
+    const form = document.getElementById('expense-form');
+    const itemInput = document.getElementById('item-input');
+    const amountInput = document.getElementById('amount-input');
+    const dateInput = document.getElementById('date-input');
+    const categoryInput = document.getElementById('category-input');
+    const submitBtn = document.getElementById('submit-btn');
+    const cancelEditBtn = document.getElementById('cancel-edit-btn');
+    const monthInput = document.getElementById('month-input');
+    const allMonthsBtn = document.getElementById('all-months-btn');
+    const searchInput = document.getElementById('search-input');
+    const filterInput = document.getElementById('filter-input');
+    const sortInput = document.getElementById('sort-input');
+    const budgetInput = document.getElementById('budget-input');
+    const budgetSlider = document.getElementById('budget-slider');
+    const heroSpentLabel = document.getElementById('hero-spent-label');
+    const heroTotal = document.getElementById('hero-total');
+    const budgetPercent = document.getElementById('budget-percent');
+    const progressFill = document.getElementById('progress-fill');
+    const budgetStatus = document.getElementById('budget-status');
+    const themeBtn = document.getElementById('theme-btn');
+    const exportCsvBtn = document.getElementById('export-csv-btn');
+    const exportDocBtn = document.getElementById('export-doc-btn');
+    const clearBtn = document.getElementById('clear-btn');
+    const list = document.getElementById('expense-list');
+    const totalLabel = document.getElementById('total-label');
+    const totalEl = document.getElementById('total-amount');
+    const breakdownContainer = document.getElementById('breakdown-container');
+    const presetsBar = document.getElementById('presets-bar');
+    const presetCreator = document.getElementById('preset-creator');
+    const presetItemInput = document.getElementById('preset-item-input');
+    const presetAmountInput = document.getElementById('preset-amount-input');
+    const presetCategoryInput = document.getElementById('preset-category-input');
+    const savePresetBtn = document.getElementById('save-preset-btn');
+    const toastEl = document.getElementById('toast');
+
+    const today = new Date().toISOString().split('T')[0];
+    const currentMonth = today.slice(0, 7);
+    dateInput.value = today;
+    monthInput.value = currentMonth;
+
+    function loadData(key, fallback) {
+      try {
+        const saved = localStorage.getItem(key);
+        return saved ? JSON.parse(saved) : fallback;
+      } catch (e) {
+        return fallback;
+      }
+    }
+
+    function saveData(key, value) {
+      try {
+        localStorage.setItem(key, JSON.stringify(value));
+      } catch (e) {
+        // Ignore storage errors in restricted preview frames
+      }
+    }
+
+    let expenses = loadData(STORAGE_KEY, []);
+    let budget = loadData(BUDGET_KEY, 10000);
+    let isDark = loadData(THEME_KEY, false);
+    let presets = loadData(PRESETS_KEY, DEFAULT_PRESETS);
+    let showAllMonths = false;
+    let editingId = null;
+    let clearConfirmTimer = null;
+    let toastTimer = null;
+
+    budgetInput.value = budget > 0 ? budget : '';
+    budgetSlider.value = Math.min(Math.max(budget || 1000, 1000), 100000);
+
+    function showToast(message) {
+      toastEl.textContent = message;
+      toastEl.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () {
+        toastEl.classList.remove('show');
+      }, 2200);
+    }
+
+    function applyTheme() {
+      document.body.classList.toggle('dark', isDark);
+      themeBtn.textContent = isDark ? '☀️ Light' : '🌙 Dark';
+    }
+    applyTheme();
+
+    themeBtn.addEventListener('click', function () {
+      isDark = !isDark;
+      saveData(THEME_KEY, isDark);
+      applyTheme();
+    });
+
+    function formatRupees(num) {
+      return '₹' + num.toLocaleString('en-IN', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+    }
+
+    function formatCompactDate(isoDate) {
+      if (!isoDate || isoDate.indexOf('-') === -1) return isoDate || '';
+      const parts = isoDate.split('-');
+      return `${parts[2]}/${parts[1]}/${parts[0].slice(2)}`;
+    }
+
+    function getMonthExpenses() {
+      if (showAllMonths || !monthInput.value) {
+        return expenses;
+      }
+      return expenses.filter(function (expense) {
+        return (expense.date || '').startsWith(monthInput.value);
+      });
+    }
+
+    function renderPresets() {
+      presetsBar.innerHTML = '<span class="presets-label">Quick Add:</span>';
+
+      presets.forEach(function (preset) {
+        const style = CATEGORY_STYLES[preset.category] || CATEGORY_STYLES.Other;
+
+        const chip = document.createElement('div');
+        chip.className = 'preset-chip';
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'preset-btn';
+        btn.textContent = `${style.icon} ${preset.item} ₹${preset.amount}`;
+        btn.addEventListener('click', function () {
+          expenses.push({
+            id: Date.now(),
+            item: preset.item,
+            amount: Number(preset.amount),
+            category: preset.category,
+            date: today
+          });
+          saveData(STORAGE_KEY, expenses);
+          renderExpenses();
+          showToast(`Added ${preset.item} (₹${preset.amount})`);
+        });
+
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'preset-remove';
+        removeBtn.title = 'Remove quick button';
+        removeBtn.textContent = '×';
+        removeBtn.addEventListener('click', function () {
+          presets = presets.filter(function (p) { return p.id !== preset.id; });
+          saveData(PRESETS_KEY, presets);
+          renderPresets();
+          showToast(`Removed "${preset.item}" quick button`);
+        });
+
+        chip.appendChild(btn);
+        chip.appendChild(removeBtn);
+        presetsBar.appendChild(chip);
+      });
+
+      const addToggle = document.createElement('button');
+      addToggle.type = 'button';
+      addToggle.className = 'add-preset-toggle';
+      addToggle.textContent = presetCreator.classList.contains('open') ? 'Close' : '+ New Quick';
+      addToggle.addEventListener('click', function () {
+        presetCreator.classList.toggle('open');
+        renderPresets();
+        if (presetCreator.classList.contains('open')) {
+          presetItemInput.focus();
+        }
+      });
+      presetsBar.appendChild(addToggle);
+    }
+
+    savePresetBtn.addEventListener('click', function () {
+      const item = presetItemInput.value.trim();
+      const amount = Number(presetAmountInput.value);
+      const category = presetCategoryInput.value;
+
+      if (!item || amount <= 0) {
+        showToast('Enter a name and valid amount for your quick button');
+        return;
+      }
+
+      presets.push({
+        id: Date.now(),
+        item: item,
+        amount: amount,
+        category: category
+      });
+      saveData(PRESETS_KEY, presets);
+      presetItemInput.value = '';
+      presetAmountInput.value = '';
+      presetCreator.classList.remove('open');
+      renderPresets();
+      showToast(`Saved quick button: ${item}`);
+    });
+
+    function resetFormMode() {
+      editingId = null;
+      submitBtn.textContent = '+ Add';
+      cancelEditBtn.style.display = 'none';
+      itemInput.value = '';
+      amountInput.value = '';
+      dateInput.value = today;
+      categoryInput.value = 'Food';
+    }
+
+    function updateBudgetBar(monthExpenses) {
+      const monthTotal = monthExpenses.reduce(function (sum, expense) {
+        return sum + expense.amount;
+      }, 0);
+
+      heroSpentLabel.textContent = showAllMonths ? 'Total Spent (All Time)' : `Spent (${monthInput.value})`;
+      heroTotal.textContent = formatRupees(monthTotal);
+
+      if (!budget || budget <= 0) {
+        progressFill.style.width = '0%';
+        budgetPercent.textContent = 'No limit set';
+        budgetStatus.textContent = 'Enter a budget to track progress';
+        return;
+      }
+
+      const rawPercent = (monthTotal / budget) * 100;
+      progressFill.style.width = `${Math.min(rawPercent, 100)}%`;
+      budgetPercent.textContent = `${Math.round(rawPercent)}% used`;
+
+      if (rawPercent >= 100) {
+        progressFill.style.backgroundColor = '#f87171';
+        budgetStatus.textContent = `Over by ${formatRupees(monthTotal - budget)}`;
+      } else if (rawPercent >= 75) {
+        progressFill.style.backgroundColor = '#fbbf24';
+        budgetStatus.textContent = `${formatRupees(budget - monthTotal)} left (getting close!)`;
+      } else {
+        progressFill.style.backgroundColor = '#34d399';
+        budgetStatus.textContent = `${formatRupees(budget - monthTotal)} remaining`;
+      }
+    }
+
+    function renderBreakdown(monthExpenses) {
+      breakdownContainer.innerHTML = '';
+
+      if (monthExpenses.length === 0) {
+        breakdownContainer.innerHTML = '<div class="breakdown-empty">Add expenses to see your category chart and breakdown.</div>';
+        return;
+      }
+
+      const totalsByCategory = {};
+      let overallTotal = 0;
+
+      monthExpenses.forEach(function (expense) {
+        totalsByCategory[expense.category] = (totalsByCategory[expense.category] || 0) + expense.amount;
+        overallTotal += expense.amount;
+      });
+
+      const sortedCategories = Object.keys(totalsByCategory).sort(function (a, b) {
+        return totalsByCategory[b] - totalsByCategory[a];
+      });
+
+      let currentPercent = 0;
+      const gradientSlices = [];
+
+      sortedCategories.forEach(function (category) {
+        const catTotal = totalsByCategory[category];
+        const exactPercent = (catTotal / overallTotal) * 100;
+        const style = CATEGORY_STYLES[category] || CATEGORY_STYLES.Other;
+
+        const start = currentPercent;
+        const end = currentPercent + exactPercent;
+        gradientSlices.push(`${style.color} ${start.toFixed(1)}% ${end.toFixed(1)}%`);
+        currentPercent = end;
+      });
+
+      const topCategory = sortedCategories[0];
+      const topPercent = Math.round((totalsByCategory[topCategory] / overallTotal) * 100);
+
+      const grid = document.createElement('div');
+      grid.className = 'breakdown-grid';
+
+      const donutWrap = document.createElement('div');
+      donutWrap.className = 'donut-wrap';
+      donutWrap.innerHTML = `
+        <div class="donut-chart" style="background: conic-gradient(${gradientSlices.join(', ')});">
+          <div class="donut-hole">
+            <span>Top</span>
+            <strong>${topCategory}</strong>
+            <span>${topPercent}%</span>
+          </div>
+        </div>
+      `;
+
+      const barsCol = document.createElement('div');
+      sortedCategories.forEach(function (category) {
+        const catTotal = totalsByCategory[category];
+        const displayPercent = Math.round((catTotal / overallTotal) * 100);
+        const style = CATEGORY_STYLES[category] || CATEGORY_STYLES.Other;
+
+        const row = document.createElement('div');
+        row.className = 'breakdown-row';
+        row.innerHTML = `
+          <div class="breakdown-label">
+            <span>${style.icon} <strong>${category}</strong></span>
+            <span>${formatRupees(catTotal)} (${displayPercent}%)</span>
+          </div>
+          <div class="breakdown-track">
+            <div class="breakdown-fill" style="width: ${displayPercent}%; background: ${style.color};"></div>
+          </div>
+        `;
+        row.addEventListener('click', function () {
+          filterInput.value = filterInput.value === category ? 'All' : category;
+          renderExpenses();
+        });
+        barsCol.appendChild(row);
+      });
+
+      grid.appendChild(donutWrap);
+      grid.appendChild(barsCol);
+      breakdownContainer.appendChild(grid);
+    }
+
+    function getVisibleExpenses(monthExpenses) {
+      const query = searchInput.value.trim().toLowerCase();
+      const selectedCategory = filterInput.value;
+      const sortBy = sortInput.value;
+
+      const filtered = monthExpenses.filter(function (expense) {
+        const matchesCategory = selectedCategory === 'All' || expense.category === selectedCategory;
+        const matchesSearch = !query || expense.item.toLowerCase().includes(query);
+        return matchesCategory && matchesSearch;
+      });
+
+      return filtered.slice().sort(function (a, b) {
+        if (sortBy === 'highest') return b.amount - a.amount;
+        if (sortBy === 'lowest') return a.amount - b.amount;
+        if (b.date !== a.date) return b.date.localeCompare(a.date);
+        return b.id - a.id;
+      });
+    }
+
+    function renderExpenses() {
+      list.innerHTML = '';
+
+      const monthExpenses = getMonthExpenses();
+      const visibleExpenses = getVisibleExpenses(monthExpenses);
+      const selectedCategory = filterInput.value;
+
+      totalLabel.textContent = selectedCategory === 'All'
+        ? `Showing ${visibleExpenses.length} item${visibleExpenses.length === 1 ? '' : 's'}`
+        : `${selectedCategory} (${visibleExpenses.length})`;
+
+      if (visibleExpenses.length === 0) {
+        const msg = monthExpenses.length === 0
+          ? 'No expenses yet — tap a Quick Add button or type one above!'
+          : 'No matching expenses found.';
+        list.innerHTML = `<li class="empty">${msg}</li>`;
+        totalEl.textContent = formatRupees(0);
+        updateBudgetBar(monthExpenses);
+        renderBreakdown(monthExpenses);
+        return;
+      }
+
+      let filteredTotal = 0;
+
+      visibleExpenses.forEach(function (expense) {
+        filteredTotal += expense.amount;
+        const style = CATEGORY_STYLES[expense.category] || CATEGORY_STYLES.Other;
+
+        const li = document.createElement('li');
+
+        const leftDiv = document.createElement('div');
+        leftDiv.className = 'row-left';
+
+        const iconBox = document.createElement('div');
+        iconBox.className = 'cat-icon';
+        iconBox.style.background = style.bg;
+        iconBox.textContent = style.icon;
+
+        const detailsDiv = document.createElement('div');
+        detailsDiv.className = 'item-details';
+
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'item-name';
+        nameSpan.textContent = expense.item;
+
+        const metaSpan = document.createElement('span');
+        metaSpan.className = 'item-meta';
+        metaSpan.textContent = `${expense.category} • ${expense.date || ''}`;
+
+        detailsDiv.appendChild(nameSpan);
+        detailsDiv.appendChild(metaSpan);
+        leftDiv.appendChild(iconBox);
+        leftDiv.appendChild(detailsDiv);
+
+        const rightDiv = document.createElement('div');
+        rightDiv.className = 'row-right';
+
+        const amountSpan = document.createElement('span');
+        amountSpan.className = 'amount-text';
+        amountSpan.textContent = formatRupees(expense.amount);
+
+        const editBtn = document.createElement('button');
+        editBtn.type = 'button';
+        editBtn.className = 'mini-btn edit-btn';
+        editBtn.textContent = 'Edit';
+        editBtn.addEventListener('click', function () {
+          editingId = expense.id;
+          itemInput.value = expense.item;
+          amountInput.value = expense.amount;
+          dateInput.value = expense.date || today;
+          categoryInput.value = expense.category;
+          submitBtn.textContent = 'Save';
+          cancelEditBtn.style.display = 'inline-block';
+          itemInput.focus();
+        });
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.type = 'button';
+        deleteBtn.className = 'mini-btn delete-btn';
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.addEventListener('click', function () {
+          if (editingId === expense.id) resetFormMode();
+          expenses = expenses.filter(function (item) {
+            return item.id !== expense.id;
+          });
+          saveData(STORAGE_KEY, expenses);
+          renderExpenses();
+          showToast(`Deleted "${expense.item}"`);
+        });
+
+        rightDiv.appendChild(amountSpan);
+        rightDiv.appendChild(editBtn);
+        rightDiv.appendChild(deleteBtn);
+        li.appendChild(leftDiv);
+        li.appendChild(rightDiv);
+        list.appendChild(li);
+      });
+
+      totalEl.textContent = formatRupees(filteredTotal);
+      updateBudgetBar(monthExpenses);
+      renderBreakdown(monthExpenses);
+    }
+
+    form.addEventListener('submit', function (event) {
+      event.preventDefault();
+
+      const item = itemInput.value.trim();
+      const amount = Number(amountInput.value);
+      const date = dateInput.value;
+      const category = categoryInput.value;
+
+      if (!item || amount <= 0 || !date) return;
+
+      if (editingId !== null) {
+        expenses = expenses.map(function (expense) {
+          if (expense.id === editingId) {
+            return { id: expense.id, item: item, amount: amount, category: category, date: date };
+          }
+          return expense;
+        });
+        resetFormMode();
+        showToast(`Updated "${item}"`);
+      } else {
+        expenses.push({
+          id: Date.now(),
+          item: item,
+          amount: amount,
+          category: category,
+          date: date
+        });
+        itemInput.value = '';
+        amountInput.value = '';
+        showToast(`Added ${item} (₹${amount})`);
+      }
+
+      saveData(STORAGE_KEY, expenses);
+      renderExpenses();
+      itemInput.focus();
+    });
+
+    cancelEditBtn.addEventListener('click', resetFormMode);
+
+    budgetInput.addEventListener('input', function () {
+      let val = Number(budgetInput.value) || 0;
+      if (val > 100000) {
+        val = 100000;
+        budgetInput.value = 100000;
+        showToast('Maximum budget is ₹1,00,000');
+      }
+      budget = val;
+      budgetSlider.value = Math.min(Math.max(budget || 1000, 1000), 100000);
+      saveData(BUDGET_KEY, budget);
+      updateBudgetBar(getMonthExpenses());
+    });
+
+    budgetSlider.addEventListener('input', function () {
+      budget = Number(budgetSlider.value);
+      budgetInput.value = budget;
+      saveData(BUDGET_KEY, budget);
+      updateBudgetBar(getMonthExpenses());
+    });
+
+    monthInput.addEventListener('change', function () {
+      showAllMonths = false;
+      allMonthsBtn.classList.remove('active');
+      renderExpenses();
+    });
+
+    allMonthsBtn.addEventListener('click', function () {
+      showAllMonths = !showAllMonths;
+      allMonthsBtn.classList.toggle('active', showAllMonths);
+      renderExpenses();
+    });
+
+    searchInput.addEventListener('input', renderExpenses);
+    filterInput.addEventListener('change', renderExpenses);
+    sortInput.addEventListener('change', renderExpenses);
+
+    clearBtn.addEventListener('click', function () {
+      if (expenses.length === 0) return;
+
+      if (!clearBtn.classList.contains('confirm-danger')) {
+        clearBtn.classList.add('confirm-danger');
+        clearBtn.textContent = 'Sure?';
+        clearTimeout(clearConfirmTimer);
+        clearConfirmTimer = setTimeout(function () {
+          clearBtn.classList.remove('confirm-danger');
+          clearBtn.textContent = 'Clear';
+        }, 3000);
+        return;
+      }
+
+      clearBtn.classList.remove('confirm-danger');
+      clearBtn.textContent = 'Clear';
+      expenses = [];
+      resetFormMode();
+      saveData(STORAGE_KEY, expenses);
+      renderExpenses();
+      showToast('All expenses cleared');
+    });
+
+    function triggerDownload(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    exportCsvBtn.addEventListener('click', function () {
+      const toExport = getMonthExpenses();
+      if (toExport.length === 0) {
+        showToast('No expenses to export');
+        return;
+      }
+
+      const rows = ['Date,Item,Category,Amount'];
+      let total = 0;
+
+      toExport.forEach(function (expense) {
+        total += expense.amount;
+        const compactDate = formatCompactDate(expense.date);
+        const safeItem = `"${expense.item.replace(/"/g, '""')}"`;
+        rows.push(`${compactDate},${safeItem},${expense.category},${expense.amount.toFixed(2)}`);
+      });
+
+      rows.push(`,,Total,${total.toFixed(2)}`);
+
+      const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
+      const filename = showAllMonths ? 'expenses-all.csv' : `expenses-${monthInput.value}.csv`;
+      triggerDownload(blob, filename);
+      showToast(`Downloaded ${filename}`);
+    });
+
+    exportDocBtn.addEventListener('click', function () {
+      const toExport = getMonthExpenses();
+      if (toExport.length === 0) {
+        showToast('No expenses to export');
+        return;
+      }
+
+      const periodLabel = showAllMonths ? 'All Months' : monthInput.value;
+      let total = 0;
+      let rowsHtml = '';
+
+      toExport.forEach(function (expense) {
+        total += expense.amount;
+        rowsHtml += `
+          <tr>
+            <td>${expense.date || ''}</td>
+            <td>${expense.item}</td>
+            <td>${expense.category}</td>
+            <td style="text-align:right;">₹${expense.amount.toFixed(2)}</td>
+          </tr>
+        `;
+      });
+
+      const docHtml = `
+        <html xmlns:w="urn:schemas-microsoft-com:office:word">
+        <head>
+          <meta charset="utf-8" />
+          <title>Expense Log - ${periodLabel}</title>
+          <style>
+            body { font-family: Calibri, Arial, sans-serif; color: #1e293b; padding: 24px; }
+            h1 { color: #312e81; margin-bottom: 4px; }
+            p.meta { color: #64748b; margin-top: 0; margin-bottom: 18px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+            th, td { border: 1px solid #cbd5e1; padding: 8px 10px; font-size: 11pt; }
+            th { background-color: #eef2ff; color: #1e1b4b; text-align: left; }
+            tr.total-row td { font-weight: bold; background-color: #f8fafc; }
+          </style>
+        </head>
+        <body>
+          <h1>Expense Log Report</h1>
+          <p class="meta">Period: ${periodLabel} &nbsp;|&nbsp; Budget: ${formatRupees(budget)}</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Item</th>
+                <th>Category</th>
+                <th style="text-align:right;">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+              <tr class="total-row">
+                <td colspan="3" style="text-align:right;">Total Spent</td>
+                <td style="text-align:right;">${formatRupees(total)}</td>
+              </tr>
+            </tbody>
+          </table>
+        </body>
+        </html>
+      `;
+
+      const blob = new Blob(['\ufeff', docHtml], { type: 'application/msword' });
+      const filename = showAllMonths ? 'expenses-all.doc' : `expenses-${monthInput.value}.doc`;
+      triggerDownload(blob, filename);
+      showToast(`Downloaded ${filename}`);
+    });
+
+    renderPresets();
+    renderExpenses();
+  </script>
+</body>
+</html>
