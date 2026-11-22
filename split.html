@@ -1,0 +1,2644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SplitKaro — Group Trip & Expense Splitter</title>
+  <meta name="theme-color" content="#6366F1" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="SplitKaro" />
+
+  <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            display: ['Plus Jakarta Sans', 'Inter', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    :root {
+      --glass-bg: rgba(255, 255, 255, 0.86);
+      --glass-bg-strong: rgba(255, 255, 255, 0.94);
+      --glass-border: rgba(255, 255, 255, 0.92);
+      --glass-shadow: 0 10px 30px -10px rgba(71, 85, 105, 0.10), 0 2px 8px -2px rgba(99, 102, 241, 0.05);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #f8fafc;
+      color: #1e293b;
+      font-family: 'Inter', system-ui, sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Calm Pastel Mesh Ambient Backdrop */
+    .ambient-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      overflow: hidden;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 50%, #f8fafc 100%);
+    }
+
+    .ambient-orb {
+      position: absolute;
+      border-radius: 9999px;
+      filter: blur(85px);
+      opacity: 0.22;
+      animation: gentleDrift 26s ease-in-out infinite alternate;
+    }
+
+    .orb-1 {
+      width: 440px;
+      height: 440px;
+      top: -110px;
+      left: -90px;
+      background: #e9d5ff;
+    }
+
+    .orb-2 {
+      width: 480px;
+      height: 480px;
+      top: 12%;
+      right: -120px;
+      background: #bae6fd;
+      animation-delay: -6s;
+    }
+
+    .orb-3 {
+      width: 420px;
+      height: 420px;
+      bottom: -100px;
+      left: 22%;
+      background: #a7f3d0;
+      animation-delay: -12s;
+    }
+
+    .orb-4 {
+      width: 360px;
+      height: 360px;
+      bottom: 8%;
+      right: 18%;
+      background: #fed7aa;
+      animation-delay: -18s;
+    }
+
+    @keyframes gentleDrift {
+      0% { transform: translate3d(0, 0, 0) scale(1); }
+      100% { transform: translate3d(24px, -18px, 0) scale(1.04); }
+    }
+
+    /* Subtle Glassmorphic Cards */
+    .glass-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid var(--glass-border);
+      box-shadow: var(--glass-shadow);
+      position: relative;
+      overflow: hidden;
+      transition: transform 180ms ease-out, box-shadow 180ms ease-out, border-color 180ms ease-out;
+    }
+
+    .glass-card:hover {
+      border-color: rgba(199, 210, 254, 0.85);
+      box-shadow: 0 14px 34px -12px rgba(71, 85, 105, 0.13), 0 4px 12px -2px rgba(99, 102, 241, 0.07);
+    }
+
+    .glass-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 200ms ease-out;
+      background: radial-gradient(
+        260px circle at var(--mx, 50%) var(--my, 50%),
+        rgba(99, 102, 241, 0.045),
+        transparent 75%
+      );
+    }
+
+    .glass-card:hover::after {
+      opacity: 1;
+    }
+
+    .glass-panel-solid {
+      background: var(--glass-bg-strong);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.95);
+      box-shadow: 0 20px 45px -15px rgba(15, 23, 42, 0.16);
+    }
+
+    /* Calm View Entrance */
+    .fade-in-view {
+      animation: calmEnter 180ms ease-out both;
+    }
+
+    @keyframes calmEnter {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* Subtle Custom Cursor Ring */
+    #custom-cursor-ring {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 22px;
+      height: 22px;
+      border-radius: 9999px;
+      border: 1.5px solid rgba(99, 102, 241, 0.45);
+      background: rgba(99, 102, 241, 0.04);
+      pointer-events: none;
+      z-index: 9999;
+      transform: translate3d(-100px, -100px, 0);
+      transition: width 160ms ease-out, height 160ms ease-out, border-color 160ms ease-out, background-color 160ms ease-out, opacity 160ms ease-out;
+    }
+
+    #custom-cursor-ring.cursor-hover {
+      width: 32px;
+      height: 32px;
+      border-color: rgba(79, 70, 229, 0.65);
+      background: rgba(99, 102, 241, 0.08);
+    }
+
+    @media (hover: none) and (pointer: coarse) {
+      #custom-cursor-ring {
+        display: none !important;
+      }
+    }
+
+    /* Custom Scrollbar */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="antialiased selection:bg-indigo-100 selection:text-indigo-800">
+  <!-- Ambient Pastel Orbs -->
+  <div class="ambient-backdrop" aria-hidden="true">
+    <div class="ambient-orb orb-1"></div>
+    <div class="ambient-orb orb-2"></div>
+    <div class="ambient-orb orb-3"></div>
+    <div class="ambient-orb orb-4"></div>
+  </div>
+
+  <!-- Subtle Cursor Ring -->
+  <div id="custom-cursor-ring" aria-hidden="true"></div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-[100] flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+  <!-- Top Sticky Glass Header -->
+  <header class="sticky top-0 z-40 bg-white/85 backdrop-blur-md border-b border-slate-200/70">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-wrap items-center justify-between gap-3 py-3">
+        <!-- Brand Logo -->
+        <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('trips')">
+          <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500 via-sky-400 to-emerald-400 flex items-center justify-center shadow-sm shadow-indigo-200/70">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v18m0-18l-4 4m4-4l4 4M5 12h14M5 12l3-3m-3 3l3 3m11-3l-3-3m3 3l-3 3"/>
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h1 class="font-display font-extrabold text-xl tracking-tight text-slate-800">Split<span class="text-indigo-600">Karo</span></h1>
+              <span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider rounded-full bg-indigo-50 text-indigo-600 border border-indigo-200/80">Live</span>
+            </div>
+            <p class="text-[11px] text-slate-500 font-medium hidden sm:block">Group Trips · Splits · Routes · Itineraries</p>
+          </div>
+        </div>
+
+        <!-- Active Trip Quick Pill & Date Controls -->
+        <div class="hidden lg:flex items-center gap-2 bg-slate-100/80 border border-slate-200/80 rounded-2xl px-3 py-1.5">
+          <span class="text-xs font-semibold text-slate-500">Active Trip:</span>
+          <select id="header-trip-select" onchange="selectTrip(this.value)" class="bg-transparent text-xs font-bold text-slate-800 focus:outline-none cursor-pointer pr-1"></select>
+          <span id="header-date-badge" class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-white text-indigo-600 border border-indigo-100 shadow-2xs"></span>
+          <button onclick="openEditDatesModal()" class="text-[11px] font-semibold text-slate-600 hover:text-indigo-600 px-2 py-0.5 rounded-lg hover:bg-white transition" title="Edit Trip Dates">
+            📅 Dates
+          </button>
+        </div>
+
+        <!-- Right Header Actions: Cursor Toggle, Share, Join, and Auth -->
+        <div class="flex items-center gap-2">
+          <button id="cursor-toggle-btn" onclick="toggleCursorEffect()" class="hidden md:inline-flex items-center gap-1.5 px-2.5 py-2 rounded-xl bg-white/80 hover:bg-white text-slate-600 border border-slate-200/80 text-xs font-medium transition" title="Toggle subtle cursor ring">
+            <span>✦</span>
+            <span id="cursor-toggle-label">Cursor: Subtle</span>
+          </button>
+
+          <button onclick="openJoinModal()" class="px-3 py-2 rounded-xl bg-white hover:bg-indigo-50/70 text-slate-700 border border-slate-200/90 text-xs font-semibold transition">
+            🔗 Join Trip
+          </button>
+
+          <button onclick="openShareModal()" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-sm shadow-indigo-200 transition">
+            🚀 Share & Invite
+          </button>
+
+          <!-- Auth Section (Rendered dynamically via JS) -->
+          <div id="header-auth-slot" class="flex items-center gap-2"></div>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav id="main-nav-tabs" class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-2.5 pt-0.5"></nav>
+    </div>
+  </header>
+
+  <!-- Main Workspace Container -->
+  <main id="app-content" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-20"></main>
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- 1. Log In & Sign Up Modal -->
+  <div id="auth-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/35 backdrop-blur-xs p-4">
+    <div class="glass-panel-solid rounded-3xl max-w-md w-full p-6 fade-in-view">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-sky-400 flex items-center justify-center text-white font-bold text-sm">SK</div>
+          <div>
+            <h3 id="auth-modal-title" class="font-display font-extrabold text-lg text-slate-800">Welcome to SplitKaro</h3>
+            <p id="auth-modal-subtitle" class="text-xs text-slate-500">Sign in to sync your trips, splits & crew</p>
+          </div>
+        </div>
+        <button onclick="closeModal('auth-modal')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center text-sm font-bold">✕</button>
+      </div>
+
+      <!-- Mode Switcher Pills -->
+      <div class="grid grid-cols-2 gap-1.5 p-1 rounded-2xl bg-slate-100 mb-5">
+        <button id="auth-tab-login" type="button" onclick="switchAuthMode('login')" class="py-2 rounded-xl text-xs font-bold transition bg-white text-indigo-600 shadow-2xs">Log In</button>
+        <button id="auth-tab-signup" type="button" onclick="switchAuthMode('signup')" class="py-2 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-800">Create Account</button>
+      </div>
+
+      <!-- Log In Form -->
+      <form id="login-form" onsubmit="handleLoginSubmit(event)" class="space-y-3.5">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Email Address</label>
+          <input id="login-email" type="email" required placeholder="aarav@splitkaro.app" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm focus:outline-none focus:border-indigo-400" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Password</label>
+          <input id="login-password" type="password" required placeholder="••••••••" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm focus:outline-none focus:border-indigo-400" />
+        </div>
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold shadow-sm transition">
+          Log In to SplitKaro
+        </button>
+
+        <div class="relative py-2 flex items-center">
+          <div class="flex-grow border-t border-slate-200"></div>
+          <span class="px-3 text-[11px] font-medium text-slate-400">or try instantly</span>
+          <div class="flex-grow border-t border-slate-200"></div>
+        </div>
+
+        <button type="button" onclick="handleDemoLogin()" class="w-full py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100/80 text-emerald-700 border border-emerald-200 text-xs font-bold transition">
+          ⚡ Instant Demo Login (Aarav · Jamnagar)
+        </button>
+      </form>
+
+      <!-- Sign Up Form -->
+      <form id="signup-form" onsubmit="handleSignupSubmit(event)" class="space-y-3 hidden">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Full Name</label>
+            <input id="signup-name" type="text" required placeholder="e.g. Bhavya Patel" class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-sm focus:outline-none focus:border-indigo-400" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Home City</label>
+            <input id="signup-city" type="text" required placeholder="e.g. Jamnagar" class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-sm focus:outline-none focus:border-indigo-400" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Email Address</label>
+          <input id="signup-email" type="email" required placeholder="you@example.com" class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-sm focus:outline-none focus:border-indigo-400" />
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Create Password</label>
+          <input id="signup-password" type="password" required minlength="4" placeholder="Min 4 characters" class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-sm focus:outline-none focus:border-indigo-400" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Travel Avatar</label>
+            <select id="signup-avatar" class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-sm focus:outline-none focus:border-indigo-400">
+              <option value="🧭">🧭 Explorer</option>
+              <option value="🎒">🎒 Backpacker</option>
+              <option value="🏖️">🏖️ Beach Lover</option>
+              <option value="🏔️">🏔️ Mountain Soul</option>
+              <option value="📸">📸 Shutterbug</option>
+              <option value="🍜">🍜 Foodie</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Badge Color</label>
+            <select id="signup-color" class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-sm focus:outline-none focus:border-indigo-400">
+              <option value="bg-indigo-500">Indigo</option>
+              <option value="bg-emerald-500">Emerald</option>
+              <option value="bg-sky-500">Sky Blue</option>
+              <option value="bg-amber-500">Amber</option>
+              <option value="bg-rose-500">Rose</option>
+              <option value="bg-violet-500">Violet</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold shadow-sm transition mt-1">
+          Create Account & Join Active Trip
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 2. Profile / Account Menu Modal -->
+  <div id="profile-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/35 backdrop-blur-xs p-4">
+    <div class="glass-panel-solid rounded-3xl max-w-sm w-full p-6 fade-in-view">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="font-display font-extrabold text-lg text-slate-800">Your SplitKaro Profile</h3>
+        <button onclick="closeModal('profile-modal')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center text-sm font-bold">✕</button>
+      </div>
+      <div id="profile-modal-body" class="space-y-4"></div>
+    </div>
+  </div>
+
+  <!-- 3. Create New Trip Modal -->
+  <div id="new-trip-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/35 backdrop-blur-xs p-4">
+    <div class="glass-panel-solid rounded-3xl max-w-lg w-full p-6 fade-in-view">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="font-display font-extrabold text-lg text-slate-800">Plan a New Group Trip</h3>
+          <p class="text-xs text-slate-500">Set destination, calendar dates, and shared budget</p>
+        </div>
+        <button onclick="closeModal('new-trip-modal')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center text-sm font-bold">✕</button>
+      </div>
+      <form onsubmit="handleCreateTrip(event)" class="space-y-3.5">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Trip Name</label>
+          <input id="new-trip-name" type="text" required placeholder="e.g. Udaipur Royal Weekend" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm focus:outline-none focus:border-indigo-400" />
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Destination City / Region</label>
+            <input id="new-trip-dest" type="text" required placeholder="e.g. Udaipur, Rajasthan" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm focus:outline-none focus:border-indigo-400" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Total Group Budget (₹)</label>
+            <input id="new-trip-budget" type="number" min="1000" step="500" required value="45000" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm focus:outline-none focus:border-indigo-400" />
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Start Date</label>
+            <input id="new-trip-start" type="date" required class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm focus:outline-none focus:border-indigo-400" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">End Date</label>
+            <input id="new-trip-end" type="date" required class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm focus:outline-none focus:border-indigo-400" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Trip Vibe / Tagline</label>
+          <input id="new-trip-tagline" type="text" placeholder="Lakeside sunsets, heritage forts & street food" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm focus:outline-none focus:border-indigo-400" />
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModal('new-trip-modal')" class="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold">Cancel</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm">Create Trip</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 4. Edit Trip Dates Modal -->
+  <div id="edit-dates-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/35 backdrop-blur-xs p-4">
+    <div class="glass-panel-solid rounded-3xl max-w-md w-full p-6 fade-in-view">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="font-display font-extrabold text-lg text-slate-800">Edit Trip Calendar Dates</h3>
+          <p class="text-xs text-slate-500">All itinerary days & countdowns update automatically</p>
+        </div>
+        <button onclick="closeModal('edit-dates-modal')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center text-sm font-bold">✕</button>
+      </div>
+      <form onsubmit="handleSaveTripDates(event)" class="space-y-4">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Start Date</label>
+            <input id="edit-trip-start" type="date" required class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm focus:outline-none focus:border-indigo-400" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">End Date</label>
+            <input id="edit-trip-end" type="date" required class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm focus:outline-none focus:border-indigo-400" />
+          </div>
+        </div>
+        <div id="edit-dates-preview" class="p-3 rounded-2xl bg-indigo-50/70 border border-indigo-100 text-xs text-indigo-800 font-medium"></div>
+        <div class="flex justify-end gap-2">
+          <button type="button" onclick="closeModal('edit-dates-modal')" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-semibold">Cancel</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold">Save Dates</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 5. Share & Invite Modal -->
+  <div id="share-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/35 backdrop-blur-xs p-4">
+    <div class="glass-panel-solid rounded-3xl max-w-lg w-full p-6 fade-in-view">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 class="font-display font-extrabold text-lg text-slate-800">Invite Friends to SplitKaro</h3>
+          <p class="text-xs text-slate-500">Share this joinable link or invite code with your travel crew</p>
+        </div>
+        <button onclick="closeModal('share-modal')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center text-sm font-bold">✕</button>
+      </div>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Joinable Trip Link (Contains Trip Snapshot)</label>
+          <div class="flex items-center gap-2">
+            <input id="share-url-input" type="text" readonly class="w-full px-3 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-700 focus:outline-none" />
+            <button onclick="copyShareLink()" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold whitespace-nowrap transition">
+              📋 Copy Link
+            </button>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between p-3.5 rounded-2xl bg-indigo-50/70 border border-indigo-100">
+          <div>
+            <p class="text-[11px] font-bold text-indigo-900">Quick Trip Invite Code</p>
+            <p id="share-code-display" class="font-display font-extrabold text-base text-indigo-600 tracking-wider mt-0.5">KARO-GOA</p>
+          </div>
+          <button onclick="previewFriendInvite()" class="px-3.5 py-2 rounded-xl bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-semibold transition">
+            ✨ Preview Friend Join
+          </button>
+        </div>
+
+        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <p class="text-xs font-bold text-slate-800">Deploy on Vercel for Clean WhatsApp Links</p>
+            <p class="text-[11px] text-slate-500 mt-0.5">Download <code class="font-mono text-indigo-600">index.html</code> and upload to Vercel or GitHub Pages.</p>
+          </div>
+          <button onclick="downloadStandaloneApp()" class="flex-shrink-0 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition">
+            ⬇ Download index.html
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Join Trip via Link or Code Modal -->
+  <div id="join-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/35 backdrop-blur-xs p-4">
+    <div class="glass-panel-solid rounded-3xl max-w-md w-full p-6 fade-in-view">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h3 id="join-modal-heading" class="font-display font-extrabold text-lg text-slate-800">Join a Shared Trip</h3>
+          <p id="join-modal-sub" class="text-xs text-slate-500">Paste a SplitKaro invite link or enter a trip code (e.g. KARO-GOA)</p>
+        </div>
+        <button onclick="closeModal('join-modal')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center text-sm font-bold">✕</button>
+      </div>
+      <form onsubmit="handleJoinTripSubmit(event)" class="space-y-3.5">
+        <div>
+          <label class="block text-xs font-semibold text-slate-700 mb-1">Invite Link or Trip Code</label>
+          <input id="join-code-input" type="text" required placeholder="KARO-GOA or https://..." class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-xs font-mono focus:outline-none focus:border-indigo-400" />
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Your Name</label>
+            <input id="join-member-name" type="text" required placeholder="e.g. Bhavya" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm focus:outline-none focus:border-indigo-400" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Origin City</label>
+            <input id="join-member-city" type="text" required placeholder="e.g. Jamnagar" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm focus:outline-none focus:border-indigo-400" />
+          </div>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModal('join-modal')" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-semibold">Cancel</button>
+          <button type="submit" class="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm">Join Trip Crew</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== APPLICATION SCRIPT ==================== -->
+  <script>
+    // ==================== CITY COORDINATES LOOKUP ====================
+    const CITY_COORDS = {
+      'jamnagar': { lat: 22.4707, lng: 70.0577 },
+      'ahmedabad': { lat: 23.0225, lng: 72.5714 },
+      'mumbai': { lat: 19.0760, lng: 72.8777 },
+      'surat': { lat: 21.1702, lng: 72.8311 },
+      'delhi': { lat: 28.6139, lng: 77.2090 },
+      'bengaluru': { lat: 12.9716, lng: 77.5946 },
+      'bangalore': { lat: 12.9716, lng: 77.5946 },
+      'pune': { lat: 18.5204, lng: 73.8567 },
+      'rajkot': { lat: 22.3039, lng: 70.8022 },
+      'vadodara': { lat: 22.3072, lng: 73.1812 },
+      'jaipur': { lat: 26.9124, lng: 75.7873 },
+      'udaipur': { lat: 24.5854, lng: 73.7125 },
+      'goa': { lat: 15.5494, lng: 73.7535 },
+      'north goa': { lat: 15.5494, lng: 73.7535 },
+      'manali': { lat: 32.2432, lng: 77.1892 },
+      'lonavala': { lat: 18.7546, lng: 73.4062 },
+      'hyderabad': { lat: 17.3850, lng: 78.4867 },
+      'chennai': { lat: 13.0827, lng: 80.2707 },
+      'kolkata': { lat: 22.5726, lng: 88.3639 }
+    };
+
+    function getCoordsForCity(cityName, fallback = { lat: 20.5937, lng: 78.9629 }) {
+      if (!cityName) return fallback;
+      const key = cityName.trim().toLowerCase();
+      for (const [city, coords] of Object.entries(CITY_COORDS)) {
+        if (key.includes(city)) return coords;
+      }
+      return fallback;
+    }
+
+    // ==================== STORAGE & SEED DATA ====================
+    const STORAGE_KEY = 'splitkaro_app_state_v1';
+    const AUTH_USERS_KEY = 'splitkaro_registered_users_v1';
+    const AUTH_SESSION_KEY = 'splitkaro_current_session_v1';
+
+    const DEFAULT_TRIPS = [
+      {
+        id: 'trip-goa',
+        inviteCode: 'KARO-GOA',
+        name: 'Goa Coastal Escape',
+        destination: 'North Goa, India',
+        terrainType: 'coastal',
+        startDate: '2026-12-18',
+        endDate: '2026-12-22',
+        budget: 60000,
+        currency: '₹',
+        tagline: 'Beach shacks, sunset forts & coastal scooter trails',
+        hubCoords: { lat: 15.5494, lng: 73.7535, label: 'Calangute Hub, North Goa' },
+        members: [
+          { id: 'm1', name: 'Aarav', city: 'Jamnagar', status: 'Confirmed', color: 'bg-indigo-500', avatar: '🧭', role: 'Organizer', mode: 'Flight', arrivalTime: '2026-12-18T11:30', transitCost: 5400 },
+          { id: 'm2', name: 'Diya', city: 'Ahmedabad', status: 'Confirmed', color: 'bg-emerald-500', avatar: '🏖️', role: 'Treasurer', mode: 'Flight', arrivalTime: '2026-12-18T12:15', transitCost: 4800 },
+          { id: 'm3', name: 'Rohan', city: 'Mumbai', status: 'Confirmed', color: 'bg-sky-500', avatar: '🎒', role: 'Navigator', mode: 'Train', arrivalTime: '2026-12-18T10:45', transitCost: 1650 },
+          { id: 'm4', name: 'Meera', city: 'Surat', status: 'Maybe', color: 'bg-amber-500', avatar: '🍜', role: 'Foodie Lead', mode: 'Bus', arrivalTime: '2026-12-18T13:30', transitCost: 1900 }
+        ],
+        expenses: [
+          { id: 'e1', title: 'Sea-View Villa Deposit (4 Nights)', amount: 24000, paidBy: 'm1', category: 'Stay', date: '2026-12-18', splitType: 'equal', splits: { m1: 6000, m2: 6000, m3: 6000, m4: 6000 } },
+          { id: 'e2', title: 'Thalassa Sunset Dinner & Drinks', amount: 6400, paidBy: 'm2', category: 'Food', date: '2026-12-18', splitType: 'equal', splits: { m1: 1600, m2: 1600, m3: 1600, m4: 1600 } },
+          { id: 'e3', title: '4 Activa Scooters + Fuel (3 Days)', amount: 4800, paidBy: 'm3', category: 'Transport', date: '2026-12-19', splitType: 'equal', splits: { m1: 1200, m2: 1200, m3: 1200, m4: 1200 } }
+        ],
+        itinerary: [
+          { id: 'i1', day: 1, time: '14:30', title: 'Check-in at Calangute Beach Villa', location: 'Calangute, North Goa', lat: 15.5494, lng: 73.7535, votes: 4, mustDo: true, notes: 'Poolside welcome lunch & scooter pickup' },
+          { id: 'i2', day: 1, time: '17:30', title: 'Sunset at Chapora Fort & Vagator', location: 'Chapora Fort, Vagator', lat: 15.6061, lng: 73.7366, votes: 5, mustDo: true, notes: 'Dil Chahta Hai viewpoint photos' },
+          { id: 'i3', day: 2, time: '10:30', title: 'Fort Aguada & Sinquerim Lighthouse', location: 'Aguada Fort, Candolim', lat: 15.4920, lng: 73.7736, votes: 3, mustDo: false, notes: 'Morning sea breeze ride' },
+          { id: 'i4', day: 2, time: '20:00', title: 'Baga Lane Seafood & Live Music', location: 'Tito’s Lane, Baga', lat: 15.5553, lng: 73.7517, votes: 4, mustDo: true, notes: 'Table booked for 4' },
+          { id: 'i5', day: 3, time: '11:00', title: 'Anjuna Flea Market & Curlies Shack', location: 'Anjuna Beach', lat: 15.5736, lng: 73.7407, votes: 4, mustDo: false, notes: 'Souvenirs & beach chill' }
+        ],
+        curatedSites: [
+          { id: 's1', name: 'Parra Coconut Tree Road', category: 'Photo Spot', lat: 15.5682, lng: 73.7824, desc: 'Iconic palm-lined scenic road in Parra' },
+          { id: 's2', name: 'Fontainhas Latin Quarter', category: 'Heritage', lat: 15.4979, lng: 73.8306, desc: 'Colorful Portuguese heritage lanes in Panjim' },
+          { id: 's3', name: 'Arambol Sweet Water Lake', category: 'Nature', lat: 15.6939, lng: 73.7014, desc: 'Freshwater lagoon right next to the Arabian Sea' }
+        ],
+        polls: [
+          {
+            id: 'p1',
+            question: 'Which water sport session should we book on Day 2?',
+            createdBy: 'Aarav',
+            options: [
+              { id: 'o1', text: 'Parasailing + Jet Ski Combo', votes: ['m1', 'm2', 'm3'] },
+              { id: 'o2', text: 'Scuba Diving at Grande Island', votes: ['m4'] },
+              { id: 'o3', text: 'Kayaking in Sal Backwaters', votes: [] }
+            ]
+          },
+          {
+            id: 'p2',
+            question: 'Day 3 evening vibe?',
+            createdBy: 'Diya',
+            options: [
+              { id: 'o4', text: 'Silent Noise Headphone Party (Palolem)', votes: ['m2', 'm4'] },
+              { id: 'o5', text: 'Sunset Cruise on Mandovi River', votes: ['m1', 'm3'] }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'trip-manali',
+        inviteCode: 'KARO-MANALI',
+        name: 'Manali & Kasol Winter Run',
+        destination: 'Himachal Pradesh',
+        terrainType: 'mountain',
+        startDate: '2027-01-14',
+        endDate: '2027-01-18',
+        budget: 75000,
+        currency: '₹',
+        tagline: 'Snow treks, riverside cafes & bonfire nights',
+        hubCoords: { lat: 32.2432, lng: 77.1892, label: 'Mall Road Base, Manali' },
+        members: [
+          { id: 'm1', name: 'Aarav', city: 'Jamnagar', status: 'Confirmed', color: 'bg-indigo-500', avatar: '🧭', role: 'Organizer', mode: 'Flight', arrivalTime: '2027-01-14T09:30', transitCost: 7800 },
+          { id: 'm3', name: 'Rohan', city: 'Mumbai', status: 'Confirmed', color: 'bg-sky-500', avatar: '🎒', role: 'Gear Lead', mode: 'Flight', arrivalTime: '2027-01-14T10:15', transitCost: 8200 },
+          { id: 'm5', name: 'Kabir', city: 'Delhi', status: 'Confirmed', color: 'bg-rose-500', avatar: '🏔️', role: 'Route Captain', mode: 'Bus', arrivalTime: '2027-01-14T08:00', transitCost: 1500 }
+        ],
+        expenses: [
+          { id: 'em1', title: 'Old Manali Wooden Chalet (4 Nights)', amount: 21000, paidBy: 'm5', category: 'Stay', date: '2027-01-14', splitType: 'equal', splits: { m1: 7000, m3: 7000, m5: 7000 } },
+          { id: 'em2', title: 'Café 1947 Riverside Dinner', amount: 3600, paidBy: 'm1', category: 'Food', date: '2027-01-14', splitType: 'equal', splits: { m1: 1200, m3: 1200, m5: 1200 } }
+        ],
+        itinerary: [
+          { id: 'im1', day: 1, time: '13:00', title: 'Hadimba Devi Temple & Cedar Forest', location: 'Old Manali', lat: 32.2484, lng: 77.1806, votes: 3, mustDo: true, notes: 'Walk through Dhungri forest' },
+          { id: 'im2', day: 2, time: '09:00', title: 'Solang Valley Snow Point & Atal Tunnel', location: 'Solang Valley', lat: 32.3164, lng: 77.1567, votes: 3, mustDo: true, notes: 'Rent snow boots at base' }
+        ],
+        curatedSites: [
+          { id: 'sm1', name: 'Jogini Waterfall Trek', category: 'Trek', lat: 32.2633, lng: 77.1897, desc: 'Scenic 2km trail past Vashisht Temple' },
+          { id: 'sm2', name: 'Sissu Lake & Waterfall', category: 'Nature', lat: 32.4789, lng: 77.1319, desc: 'Across Atal Tunnel in Lahaul Valley' }
+        ],
+        polls: [
+          {
+            id: 'pm1',
+            question: 'Should we add a 1-night Kasol & Chalal riverside stay?',
+            createdBy: 'Kabir',
+            options: [
+              { id: 'om1', text: 'Yes! Kasol cafes + Manikaran', votes: ['m1', 'm5'] },
+              { id: 'om2', text: 'Stay all 4 nights in Manali', votes: ['m3'] }
+            ]
+          }
+        ]
+      },
+      {
+        id: 'trip-mumbai',
+        inviteCode: 'KARO-LONAVALA',
+        name: 'Mumbai–Lonavala Weekend Meetup',
+        destination: 'Lonavala & Pawna Lake',
+        terrainType: 'lake',
+        startDate: '2026-11-28',
+        endDate: '2026-11-30',
+        budget: 28000,
+        currency: '₹',
+        tagline: 'Lakeside camping, bhajiyas & misty ghats',
+        hubCoords: { lat: 18.6596, lng: 73.4852, label: 'Pawna Lake Campsite, Lonavala' },
+        members: [
+          { id: 'm1', name: 'Aarav', city: 'Jamnagar', status: 'Confirmed', color: 'bg-indigo-500', avatar: '🧭', role: 'Organizer', mode: 'Train', arrivalTime: '2026-11-28T11:00', transitCost: 1400 },
+          { id: 'm2', name: 'Diya', city: 'Ahmedabad', status: 'Confirmed', color: 'bg-emerald-500', avatar: '🏖️', role: 'Planner', mode: 'Flight', arrivalTime: '2026-11-28T10:30', transitCost: 3900 },
+          { id: 'm3', name: 'Rohan', city: 'Mumbai', status: 'Confirmed', color: 'bg-sky-500', avatar: '🎒', role: 'Host', mode: 'Road/Car', arrivalTime: '2026-11-28T11:15', transitCost: 900 }
+        ],
+        expenses: [
+          { id: 'el1', title: 'Pawna Lake Glamping Tents + BBQ', amount: 9600, paidBy: 'm3', category: 'Stay', date: '2026-11-28', splitType: 'equal', splits: { m1: 3200, m2: 3200, m3: 3200 } }
+        ],
+        itinerary: [
+          { id: 'il1', day: 1, time: '16:00', title: 'Pawna Lake Sunset & Bonfire', location: 'Pawna Lake', lat: 18.6596, lng: 73.4852, votes: 3, mustDo: true, notes: 'Acoustic jam session' },
+          { id: 'il2', day: 2, time: '08:30', title: 'Lohagad Fort Morning Hike', location: 'Lohagad Fort', lat: 18.7097, lng: 73.4757, votes: 3, mustDo: true, notes: 'Panoramic Sahyadri ridge' }
+        ],
+        curatedSites: [
+          { id: 'sl1', name: 'Tiger’s Leap Viewpoint', category: 'Viewpoint', lat: 18.7165, lng: 73.3858, desc: 'Cliff-edge valley echo point' }
+        ],
+        polls: []
+      }
+    ];
+
+    let state = {
+      activeTab: 'trips', // 'trips' | 'expenses' | 'itinerary' | 'polls' | 'meetup' | 'crew'
+      activeTripId: 'trip-goa',
+      currentUser: null, // { id, name, email, city, avatar, color }
+      itineraryDayFilter: 'all',
+      expenseSortOrder: 'newest',
+      expenseSplitMode: 'equal',
+      subtleCursor: true,
+      trips: JSON.parse(JSON.stringify(DEFAULT_TRIPS))
+    };
+
+    // ==================== INITIALIZATION & PERSISTENCE ====================
+    function loadPersistedState() {
+      try {
+        if (window.__PRELOADED_SPLITKARO_STATE__) {
+          const pre = window.__PRELOADED_SPLITKARO_STATE__;
+          if (Array.isArray(pre.trips) && pre.trips.length > 0) {
+            state.trips = pre.trips;
+            state.activeTripId = pre.activeTripId || pre.trips[0].id;
+          }
+        } else {
+          const saved = localStorage.getItem(STORAGE_KEY);
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (Array.isArray(parsed.trips) && parsed.trips.length > 0) {
+              state.trips = parsed.trips;
+            }
+            if (parsed.activeTripId && state.trips.some(t => t.id === parsed.activeTripId)) {
+              state.activeTripId = parsed.activeTripId;
+            }
+            if (typeof parsed.subtleCursor === 'boolean') {
+              state.subtleCursor = parsed.subtleCursor;
+            }
+          }
+        }
+
+        const savedSession = localStorage.getItem(AUTH_SESSION_KEY);
+        if (savedSession) {
+          state.currentUser = JSON.parse(savedSession);
+        }
+
+        hydrateFromSharedUrl();
+      } catch (err) {
+        console.warn('State load fallback:', err);
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          trips: state.trips,
+          activeTripId: state.activeTripId,
+          subtleCursor: state.subtleCursor
+        }));
+      } catch (err) {
+        console.warn('Could not save state:', err);
+      }
+    }
+
+    function getActiveTrip() {
+      return state.trips.find(t => t.id === state.activeTripId) || state.trips[0];
+    }
+
+    // ==================== DATE & CALENDAR HELPERS ====================
+    function parseISODate(dateStr) {
+      if (!dateStr) return new Date();
+      const [y, m, d] = dateStr.split('-').map(Number);
+      return new Date(y, (m || 1) - 1, d || 1);
+    }
+
+    function formatShortDate(dateStr) {
+      const d = parseISODate(dateStr);
+      return d.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
+    }
+
+    function formatFullDateRange(startStr, endStr) {
+      const s = parseISODate(startStr);
+      const e = parseISODate(endStr);
+      const sText = s.toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
+      const eText = e.toLocaleDateString('en-IN', { month: 'short', day: 'numeric', year: 'numeric' });
+      return `${sText} – ${eText}`;
+    }
+
+    function getTripDayCount(trip) {
+      const s = parseISODate(trip.startDate);
+      const e = parseISODate(trip.endDate);
+      const diff = Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1;
+      return Math.max(1, Math.min(30, diff));
+    }
+
+    function getDateForTripDay(trip, dayNum) {
+      const s = parseISODate(trip.startDate);
+      s.setDate(s.getDate() + (dayNum - 1));
+      return s.toLocaleDateString('en-IN', { weekday: 'short', month: 'short', day: 'numeric' });
+    }
+
+    function getCountdownBadge(trip) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const start = parseISODate(trip.startDate);
+      const end = parseISODate(trip.endDate);
+
+      if (today < start) {
+        const days = Math.ceil((start - today) / (1000 * 60 * 60 * 24));
+        return { text: `In ${days} day${days === 1 ? '' : 's'}`, style: 'bg-indigo-50 text-indigo-700 border-indigo-200' };
+      }
+      if (today >= start && today <= end) {
+        return { text: 'Happening Now', style: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+      }
+      return { text: 'Completed', style: 'bg-slate-100 text-slate-600 border-slate-200' };
+    }
+
+    // ==================== AUTHENTICATION (SIGN UP & LOG IN) ====================
+    function getRegisteredUsers() {
+      try {
+        const raw = localStorage.getItem(AUTH_USERS_KEY);
+        const list = raw ? JSON.parse(raw) : [];
+        if (list.length === 0) {
+          return [{
+            id: 'u-demo-aarav',
+            name: 'Aarav',
+            email: 'aarav@splitkaro.app',
+            password: 'demo',
+            city: 'Jamnagar',
+            avatar: '🧭',
+            color: 'bg-indigo-500'
+          }];
+        }
+        return list;
+      } catch {
+        return [];
+      }
+    }
+
+    function saveRegisteredUsers(users) {
+      localStorage.setItem(AUTH_USERS_KEY, JSON.stringify(users));
+    }
+
+    function openAuthModal(mode = 'login') {
+      switchAuthMode(mode);
+      openModal('auth-modal');
+    }
+
+    function switchAuthMode(mode) {
+      const loginForm = document.getElementById('login-form');
+      const signupForm = document.getElementById('signup-form');
+      const tabLogin = document.getElementById('auth-tab-login');
+      const tabSignup = document.getElementById('auth-tab-signup');
+      const title = document.getElementById('auth-modal-title');
+      const sub = document.getElementById('auth-modal-subtitle');
+
+      if (mode === 'signup') {
+        loginForm.classList.add('hidden');
+        signupForm.classList.remove('hidden');
+        tabSignup.className = 'py-2 rounded-xl text-xs font-bold transition bg-white text-indigo-600 shadow-2xs';
+        tabLogin.className = 'py-2 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-800';
+        title.textContent = 'Create Your SplitKaro Account';
+        sub.textContent = 'Join trips, track group splits & share live routes';
+      } else {
+        signupForm.classList.add('hidden');
+        loginForm.classList.remove('hidden');
+        tabLogin.className = 'py-2 rounded-xl text-xs font-bold transition bg-white text-indigo-600 shadow-2xs';
+        tabSignup.className = 'py-2 rounded-xl text-xs font-bold transition text-slate-600 hover:text-slate-800';
+        title.textContent = 'Welcome Back to SplitKaro';
+        sub.textContent = 'Sign in to access your trips & balances';
+      }
+    }
+
+    function syncUserToActiveTrip(user) {
+      if (!user) return;
+      const trip = getActiveTrip();
+      const existing = trip.members.find(m => m.name.toLowerCase() === user.name.toLowerCase());
+      if (!existing) {
+        trip.members.push({
+          id: 'm-' + Date.now(),
+          name: user.name,
+          city: user.city || 'India',
+          status: 'Confirmed',
+          color: user.color || 'bg-indigo-500',
+          avatar: user.avatar || '🧭',
+          role: 'Member',
+          mode: 'Flight',
+          arrivalTime: `${trip.startDate}T12:00`,
+          transitCost: 0
+        });
+        saveState();
+      }
+    }
+
+    function handleSignupSubmit(e) {
+      e.preventDefault();
+      const name = document.getElementById('signup-name').value.trim();
+      const city = document.getElementById('signup-city').value.trim();
+      const email = document.getElementById('signup-email').value.trim().toLowerCase();
+      const password = document.getElementById('signup-password').value;
+      const avatar = document.getElementById('signup-avatar').value;
+      const color = document.getElementById('signup-color').value;
+
+      const users = getRegisteredUsers();
+      if (users.some(u => u.email === email)) {
+        showToast('An account with this email already exists. Please log in.', 'error');
+        switchAuthMode('login');
+        document.getElementById('login-email').value = email;
+        return;
+      }
+
+      const newUser = {
+        id: 'u-' + Date.now(),
+        name,
+        email,
+        password,
+        city,
+        avatar,
+        color
+      };
+      users.push(newUser);
+      saveRegisteredUsers(users);
+
+      state.currentUser = newUser;
+      localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(newUser));
+      syncUserToActiveTrip(newUser);
+
+      closeModal('auth-modal');
+      renderHeader();
+      renderApp();
+      showToast(`Welcome aboard, ${newUser.name}! Account created & synced.`);
+    }
+
+    function handleLoginSubmit(e) {
+      e.preventDefault();
+      const email = document.getElementById('login-email').value.trim().toLowerCase();
+      const password = document.getElementById('login-password').value;
+
+      const users = getRegisteredUsers();
+      const matched = users.find(u => u.email === email && u.password === password);
+
+      if (!matched) {
+        showToast('Invalid email or password. Try Instant Demo Login or Sign Up!', 'error');
+        return;
+      }
+
+      state.currentUser = matched;
+      localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(matched));
+      syncUserToActiveTrip(matched);
+
+      closeModal('auth-modal');
+      renderHeader();
+      renderApp();
+      showToast(`Signed in as ${matched.name} (${matched.city})`);
+    }
+
+    function handleDemoLogin() {
+      const demoUser = {
+        id: 'u-demo-aarav',
+        name: 'Aarav',
+        email: 'aarav@splitkaro.app',
+        city: 'Jamnagar',
+        avatar: '🧭',
+        color: 'bg-indigo-500'
+      };
+      state.currentUser = demoUser;
+      localStorage.setItem(AUTH_SESSION_KEY, JSON.stringify(demoUser));
+      syncUserToActiveTrip(demoUser);
+      closeModal('auth-modal');
+      renderHeader();
+      renderApp();
+      showToast('Signed in with Demo Account (Aarav · Jamnagar)');
+    }
+
+    function openProfileModal() {
+      if (!state.currentUser) {
+        openAuthModal('login');
+        return;
+      }
+      const u = state.currentUser;
+      const body = document.getElementById('profile-modal-body');
+      body.innerHTML = `
+        <div class="flex items-center gap-3.5 p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80">
+          <div class="w-12 h-12 rounded-2xl ${u.color || 'bg-indigo-500'} text-white flex items-center justify-center text-xl font-bold shadow-xs">
+            ${u.avatar || u.name[0]}
+          </div>
+          <div>
+            <p class="font-display font-bold text-base text-slate-800">${escapeHtml(u.name)}</p>
+            <p class="text-xs text-slate-500">${escapeHtml(u.email)}</p>
+            <span class="inline-block mt-1 px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 text-[11px] font-semibold border border-indigo-100">📍 ${escapeHtml(u.city || 'India')}</span>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-2.5 pt-1">
+          <button onclick="closeModal('profile-modal'); openAuthModal('signup');" class="py-2.5 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition">
+            + New Account
+          </button>
+          <button onclick="logoutUser()" class="py-2.5 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-bold transition">
+            Log Out
+          </button>
+        </div>
+      `;
+      openModal('profile-modal');
+    }
+
+    function logoutUser() {
+      state.currentUser = null;
+      localStorage.removeItem(AUTH_SESSION_KEY);
+      closeModal('profile-modal');
+      renderHeader();
+      renderApp();
+      showToast('Signed out of SplitKaro.', 'info');
+    }
+
+    // ==================== SPLITWISE EXPENSE CALCULATION ====================
+    function calculateBalancesAndSettlements(trip) {
+      const balances = {};
+      trip.members.forEach(m => { balances[m.id] = 0; });
+
+      trip.expenses.forEach(exp => {
+        const amt = Number(exp.amount) || 0;
+        if (balances[exp.paidBy] !== undefined) {
+          balances[exp.paidBy] += amt;
+        }
+        if (exp.splits) {
+          Object.entries(exp.splits).forEach(([memberId, share]) => {
+            if (balances[memberId] !== undefined) {
+              balances[memberId] -= Number(share) || 0;
+            }
+          });
+        }
+      });
+
+      const debtors = [];
+      const creditors = [];
+      Object.entries(balances).forEach(([id, bal]) => {
+        const rounded = Math.round(bal * 100) / 100;
+        if (rounded < -0.5) debtors.push({ id, amount: -rounded });
+        else if (rounded > 0.5) creditors.push({ id, amount: rounded });
+      });
+
+      debtors.sort((a, b) => b.amount - a.amount);
+      creditors.sort((a, b) => b.amount - a.amount);
+
+      const settlements = [];
+      let i = 0, j = 0;
+      while (i < debtors.length && j < creditors.length) {
+        const pay = Math.min(debtors[i].amount, creditors[j].amount);
+        if (pay > 0.5) {
+          settlements.push({
+            from: debtors[i].id,
+            to: creditors[j].id,
+            amount: Math.round(pay)
+          });
+        }
+        debtors[i].amount -= pay;
+        creditors[j].amount -= pay;
+        if (debtors[i].amount <= 0.5) i++;
+        if (creditors[j].amount <= 0.5) j++;
+      }
+
+      return { balances, settlements };
+    }
+
+    // ==================== SHAREABLE & JOINABLE LINKS ====================
+    function buildJoinableTripUrl(trip) {
+      const base = window.location.href.split('?')[0].split('#')[0];
+      const compactPayload = {
+        id: trip.id,
+        inviteCode: trip.inviteCode,
+        name: trip.name,
+        destination: trip.destination,
+        terrainType: trip.terrainType || 'coastal',
+        startDate: trip.startDate,
+        endDate: trip.endDate,
+        budget: trip.budget,
+        currency: trip.currency,
+        tagline: trip.tagline,
+        hubCoords: trip.hubCoords,
+        members: trip.members,
+        expenses: trip.expenses,
+        itinerary: trip.itinerary,
+        curatedSites: trip.curatedSites || [],
+        polls: trip.polls || []
+      };
+      const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(compactPayload))));
+      return `${base}?trip=${encodeURIComponent(trip.id)}&invite=${encodeURIComponent(trip.inviteCode)}#data=${encoded}`;
+    }
+
+    function hydrateFromSharedUrl() {
+      try {
+        const hash = window.location.hash || '';
+        const params = new URLSearchParams(window.location.search);
+        const inviteParam = params.get('invite');
+
+        if (hash.startsWith('#data=')) {
+          const rawB64 = hash.slice(6);
+          const jsonStr = decodeURIComponent(escape(atob(rawB64)));
+          const sharedTrip = JSON.parse(jsonStr);
+          if (sharedTrip && sharedTrip.id && sharedTrip.name) {
+            const idx = state.trips.findIndex(t => t.id === sharedTrip.id);
+            if (idx >= 0) state.trips[idx] = sharedTrip;
+            else state.trips.unshift(sharedTrip);
+            state.activeTripId = sharedTrip.id;
+            saveState();
+            setTimeout(() => {
+              openModal('join-modal');
+              document.getElementById('join-code-input').value = sharedTrip.inviteCode || sharedTrip.id;
+              document.getElementById('join-modal-heading').textContent = `You're Invited to ${sharedTrip.name}!`;
+              document.getElementById('join-modal-sub').textContent = `Enter your name & city below to join this shared SplitKaro trip.`;
+            }, 350);
+          }
+        } else if (inviteParam) {
+          const found = state.trips.find(t => t.inviteCode.toLowerCase() === inviteParam.toLowerCase());
+          if (found) {
+            state.activeTripId = found.id;
+            setTimeout(() => {
+              openModal('join-modal');
+              document.getElementById('join-code-input').value = found.inviteCode;
+              document.getElementById('join-modal-heading').textContent = `Join ${found.name}`;
+            }, 350);
+          }
+        }
+      } catch (err) {
+        console.warn('Could not parse shared URL:', err);
+      }
+    }
+
+    function openShareModal() {
+      const trip = getActiveTrip();
+      document.getElementById('share-url-input').value = buildJoinableTripUrl(trip);
+      document.getElementById('share-code-display').textContent = trip.inviteCode;
+      openModal('share-modal');
+    }
+
+    function copyShareLink() {
+      const input = document.getElementById('share-url-input');
+      input.select();
+      input.setSelectionRange(0, 99999);
+      try {
+        document.execCommand('copy');
+        showToast('Joinable SplitKaro link copied to clipboard!');
+      } catch {
+        showToast('Link selected — press Ctrl+C / Copy to share.', 'info');
+      }
+    }
+
+    function previewFriendInvite() {
+      const trip = getActiveTrip();
+      closeModal('share-modal');
+      openModal('join-modal');
+      document.getElementById('join-code-input').value = trip.inviteCode;
+      document.getElementById('join-modal-heading').textContent = `You're Invited to ${trip.name}!`;
+      document.getElementById('join-modal-sub').textContent = `Previewing your invite link. Enter a friend's name to add them to the trip.`;
+    }
+
+    function openJoinModal() {
+      document.getElementById('join-modal-heading').textContent = 'Join a Shared Trip';
+      document.getElementById('join-modal-sub').textContent = 'Paste a SplitKaro invite link or enter a trip code (e.g. KARO-GOA)';
+      document.getElementById('join-code-input').value = '';
+      if (state.currentUser) {
+        document.getElementById('join-member-name').value = state.currentUser.name;
+        document.getElementById('join-member-city').value = state.currentUser.city;
+      }
+      openModal('join-modal');
+    }
+
+    function handleJoinTripSubmit(e) {
+      e.preventDefault();
+      const rawInput = document.getElementById('join-code-input').value.trim();
+      const memberName = document.getElementById('join-member-name').value.trim();
+      const memberCity = document.getElementById('join-member-city').value.trim();
+
+      let targetTrip = null;
+
+      if (rawInput.includes('#data=')) {
+        try {
+          const b64 = rawInput.split('#data=')[1].split('&')[0];
+          const decoded = JSON.parse(decodeURIComponent(escape(atob(b64))));
+          if (decoded && decoded.id) {
+            const existingIdx = state.trips.findIndex(t => t.id === decoded.id);
+            if (existingIdx >= 0) state.trips[existingIdx] = decoded;
+            else state.trips.unshift(decoded);
+            targetTrip = decoded;
+          }
+        } catch (err) {
+          console.warn('Invalid link payload:', err);
+        }
+      }
+
+      if (!targetTrip) {
+        const cleanCode = rawInput.toUpperCase();
+        targetTrip = state.trips.find(t =>
+          t.inviteCode.toUpperCase() === cleanCode ||
+          t.id.toUpperCase() === cleanCode ||
+          rawInput.toUpperCase().includes(t.inviteCode.toUpperCase())
+        );
+      }
+
+      if (!targetTrip) {
+        showToast('Trip code not found. Try KARO-GOA, KARO-MANALI, or paste a full invite link.', 'error');
+        return;
+      }
+
+      state.activeTripId = targetTrip.id;
+      const alreadyIn = targetTrip.members.find(m => m.name.toLowerCase() === memberName.toLowerCase());
+      if (!alreadyIn) {
+        const palette = ['bg-indigo-500', 'bg-emerald-500', 'bg-sky-500', 'bg-amber-500', 'bg-rose-500', 'bg-violet-500'];
+        const color = palette[targetTrip.members.length % palette.length];
+        targetTrip.members.push({
+          id: 'm-' + Date.now(),
+          name: memberName,
+          city: memberCity,
+          status: 'Confirmed',
+          color,
+          avatar: '🎒',
+          role: 'Member',
+          mode: 'Flight',
+          arrivalTime: `${targetTrip.startDate}T12:00`,
+          transitCost: 0
+        });
+      }
+
+      saveState();
+      closeModal('join-modal');
+      state.activeTab = 'crew';
+      renderHeader();
+      renderApp();
+      showToast(`${memberName} joined ${targetTrip.name}!`);
+    }
+
+    function downloadStandaloneApp() {
+      try {
+        const clone = document.documentElement.cloneNode(true);
+        const appContent = clone.querySelector('#app-content');
+        if (appContent) appContent.innerHTML = '';
+        const toastBox = clone.querySelector('#toast-container');
+        if (toastBox) toastBox.innerHTML = '';
+
+        const snapshot = JSON.stringify({
+          trips: state.trips,
+          activeTripId: state.activeTripId
+        });
+        const seedScript = document.createElement('script');
+        seedScript.textContent = `window.__PRELOADED_SPLITKARO_STATE__ = ${snapshot};`;
+        clone.querySelector('head').prepend(seedScript);
+
+        const html = '<!DOCTYPE html>\n' + clone.outerHTML;
+        const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'index.html';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1500);
+        showToast('Downloaded index.html! Upload straight to Vercel or GitHub.');
+      } catch {
+        showToast('Use the editor Download icon at the top right to save index.html.', 'info');
+      }
+    }
+
+    // ==================== HEADER & NAVIGATION RENDERING ====================
+    const NAV_ITEMS = [
+      { id: 'trips', label: 'Trips Overview', icon: '🧳' },
+      { id: 'expenses', label: 'Expense Splitting', icon: '💸' },
+      { id: 'itinerary', label: 'Itinerary', icon: '🗓️' },
+      { id: 'polls', label: 'Group Polls', icon: '📊' },
+      { id: 'meetup', label: 'Multi-City Meetup', icon: '✈️' },
+      { id: 'crew', label: 'Crew & Invites', icon: '👥' }
+    ];
+
+    function renderHeader() {
+      const trip = getActiveTrip();
+
+      const select = document.getElementById('header-trip-select');
+      if (select) {
+        select.innerHTML = state.trips
+          .map(t => `<option value="${t.id}" ${t.id === trip.id ? 'selected' : ''}>${escapeHtml(t.name)}</option>`)
+          .join('');
+      }
+
+      const dateBadge = document.getElementById('header-date-badge');
+      if (dateBadge) {
+        dateBadge.textContent = formatFullDateRange(trip.startDate, trip.endDate);
+      }
+
+      const authSlot = document.getElementById('header-auth-slot');
+      if (authSlot) {
+        if (state.currentUser) {
+          const u = state.currentUser;
+          authSlot.innerHTML = `
+            <button onclick="openProfileModal()" class="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200/90 shadow-2xs transition">
+              <span class="w-6 h-6 rounded-lg ${u.color || 'bg-indigo-500'} text-white text-xs flex items-center justify-center font-bold">${u.avatar || u.name[0]}</span>
+              <span class="text-xs font-bold text-slate-800 max-w-[90px] truncate">${escapeHtml(u.name)}</span>
+            </button>
+          `;
+        } else {
+          authSlot.innerHTML = `
+            <button onclick="openAuthModal('login')" class="px-3 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/90 text-xs font-semibold transition">
+              Log In
+            </button>
+            <button onclick="openAuthModal('signup')" class="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition">
+              Sign Up
+            </button>
+          `;
+        }
+      }
+
+      const nav = document.getElementById('main-nav-tabs');
+      if (nav) {
+        nav.innerHTML = NAV_ITEMS.map(item => {
+          const active = state.activeTab === item.id;
+          return `
+            <button onclick="switchTab('${item.id}')"
+              class="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition ${
+                active
+                  ? 'bg-indigo-600 text-white shadow-xs shadow-indigo-200'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
+              }">
+              <span>${item.icon}</span>
+              <span>${item.label}</span>
+            </button>
+          `;
+        }).join('');
+      }
+    }
+
+    function switchTab(tabId) {
+      state.activeTab = tabId;
+      renderHeader();
+      renderApp();
+    }
+
+    function selectTrip(tripId) {
+      state.activeTripId = tripId;
+      state.itineraryDayFilter = 'all';
+      saveState();
+      renderHeader();
+      renderApp();
+    }
+
+    // ==================== MAIN SCREEN ROUTER ====================
+    function renderApp() {
+      const container = document.getElementById('app-content');
+      if (!container) return;
+
+      switch (state.activeTab) {
+        case 'trips':
+          container.innerHTML = renderTripsOverview();
+          break;
+        case 'expenses':
+          container.innerHTML = renderExpensesScreen();
+          updateSplitInputsPreview();
+          break;
+        case 'itinerary':
+          container.innerHTML = renderItineraryScreen();
+          break;
+        case 'polls':
+          container.innerHTML = renderPollsScreen();
+          break;
+        case 'meetup':
+          container.innerHTML = renderMeetupScreen();
+          break;
+        case 'crew':
+          container.innerHTML = renderCrewScreen();
+          break;
+        default:
+          container.innerHTML = renderTripsOverview();
+      }
+    }
+
+    // ==================== SCREEN 1: TRIPS OVERVIEW ====================
+    function renderTripsOverview() {
+      const activeTrip = getActiveTrip();
+      const totalSpent = activeTrip.expenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+      const budgetPct = Math.min(100, Math.round((totalSpent / (activeTrip.budget || 1)) * 100));
+      const countdown = getCountdownBadge(activeTrip);
+      const dayCount = getTripDayCount(activeTrip);
+
+      return `
+        <div class="space-y-6 fade-in-view">
+          <!-- Hero Active Trip Banner -->
+          <div class="glass-card rounded-3xl p-6 sm:p-8">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+              <div class="space-y-2.5 max-w-2xl">
+                <div class="flex flex-wrap items-center gap-2">
+                  <span class="px-3 py-1 rounded-full text-xs font-bold border ${countdown.style}">${countdown.text}</span>
+                  <span class="px-3 py-1 rounded-full text-xs font-semibold bg-white/90 text-slate-700 border border-slate-200/80">
+                    📅 ${formatFullDateRange(activeTrip.startDate, activeTrip.endDate)} (${dayCount}D / ${Math.max(1, dayCount - 1)}N)
+                  </span>
+                  <span class="px-3 py-1 rounded-full text-xs font-mono font-bold bg-indigo-50 text-indigo-600 border border-indigo-100">
+                    ${activeTrip.inviteCode}
+                  </span>
+                </div>
+                <h2 class="font-display font-extrabold text-2xl sm:text-3xl text-slate-800 tracking-tight">${escapeHtml(activeTrip.name)}</h2>
+                <p class="text-sm text-slate-600">📍 <span class="font-semibold text-slate-700">${escapeHtml(activeTrip.destination)}</span> · ${escapeHtml(activeTrip.tagline || '')}</p>
+                <div class="flex flex-wrap items-center gap-2 pt-2">
+                  <button onclick="switchTab('expenses')" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs transition">
+                    💸 Split Expenses
+                  </button>
+                  <button onclick="switchTab('itinerary')" class="px-4 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 text-xs font-bold transition">
+                    🗓️ View Itinerary
+                  </button>
+                  <button onclick="openEditDatesModal()" class="px-3.5 py-2 rounded-xl bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-100 text-xs font-semibold transition">
+                    📅 Change Dates
+                  </button>
+                </div>
+              </div>
+
+              <!-- Quick Budget & Crew Summary -->
+              <div class="bg-white/90 border border-slate-200/80 rounded-2xl p-4 sm:p-5 min-w-[270px] space-y-3">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-semibold text-slate-500">Group Budget Used</span>
+                  <span class="text-xs font-bold ${budgetPct > 90 ? 'text-rose-600' : 'text-indigo-600'}">${budgetPct}%</span>
+                </div>
+                <div class="flex items-baseline justify-between">
+                  <span class="font-display font-extrabold text-xl text-slate-800">${activeTrip.currency}${totalSpent.toLocaleString('en-IN')}</span>
+                  <span class="text-xs text-slate-500">of ${activeTrip.currency}${activeTrip.budget.toLocaleString('en-IN')}</span>
+                </div>
+                <div class="w-full h-2 rounded-full bg-slate-100 overflow-hidden">
+                  <div class="h-full rounded-full bg-gradient-to-r from-indigo-500 to-sky-400 transition-all duration-300" style="width: ${budgetPct}%"></div>
+                </div>
+                <div class="flex items-center justify-between pt-1 text-xs text-slate-600">
+                  <span>👥 ${activeTrip.members.length} Crew Members</span>
+                  <span>🗓️ ${activeTrip.itinerary.length} Planned Stops</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- All Trips Grid Header -->
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="font-display font-extrabold text-lg text-slate-800">Your Group Trips</h3>
+              <p class="text-xs text-slate-500">Switch trips anytime or create a brand new adventure</p>
+            </div>
+            <button onclick="openNewTripModal()" class="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-xs transition">
+              + Create New Trip
+            </button>
+          </div>
+
+          <!-- Trips Cards Grid -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            ${state.trips.map(t => {
+              const isSelected = t.id === activeTrip.id;
+              const spent = t.expenses.reduce((s, e) => s + Number(e.amount || 0), 0);
+              const badge = getCountdownBadge(t);
+              return `
+                <div onclick="selectTrip('${t.id}')" class="glass-card rounded-3xl p-5 cursor-pointer flex flex-col justify-between ${isSelected ? 'ring-2 ring-indigo-500 bg-white/95' : ''}">
+                  <div class="space-y-3">
+                    <div class="flex items-center justify-between gap-2">
+                      <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${badge.style}">${badge.text}</span>
+                      ${isSelected
+                        ? '<span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-indigo-600 text-white">Active</span>'
+                        : '<span class="text-[11px] font-semibold text-slate-400">Click to open</span>'}
+                    </div>
+                    <div>
+                      <h4 class="font-display font-extrabold text-lg text-slate-800">${escapeHtml(t.name)}</h4>
+                      <p class="text-xs font-medium text-slate-500 mt-0.5">📍 ${escapeHtml(t.destination)}</p>
+                    </div>
+                    <p class="text-xs text-slate-600 line-clamp-2">${escapeHtml(t.tagline || 'Collaborative group trip')}</p>
+                  </div>
+
+                  <div class="pt-4 mt-4 border-t border-slate-200/70 space-y-2.5">
+                    <div class="flex items-center justify-between text-xs">
+                      <span class="text-slate-500 font-medium">📅 ${formatShortDate(t.startDate)} – ${formatShortDate(t.endDate)}</span>
+                      <span class="font-bold text-slate-800">${t.currency}${spent.toLocaleString('en-IN')} spent</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                      <div class="flex -space-x-2">
+                        ${t.members.slice(0, 5).map(m => `
+                          <span title="${escapeHtml(m.name)} (${escapeHtml(m.city)})" class="w-7 h-7 rounded-full ${m.color || 'bg-indigo-500'} text-white text-[11px] font-bold flex items-center justify-center ring-2 ring-white">
+                            ${escapeHtml(m.name[0])}
+                          </span>
+                        `).join('')}
+                      </div>
+                      <span class="text-[11px] font-mono font-semibold text-indigo-600">${t.inviteCode}</span>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // ==================== SCREEN 2: EXPENSE SPLITTING (SPLITWISE CORE) ====================
+    function renderExpensesScreen() {
+      const trip = getActiveTrip();
+      const { balances, settlements } = calculateBalancesAndSettlements(trip);
+      const totalSpent = trip.expenses.reduce((s, e) => s + Number(e.amount || 0), 0);
+
+      let defaultPayerId = trip.members[0]?.id || '';
+      if (state.currentUser) {
+        const match = trip.members.find(m => m.name.toLowerCase() === state.currentUser.name.toLowerCase());
+        if (match) defaultPayerId = match.id;
+      }
+
+      const sortedExpenses = [...trip.expenses].sort((a, b) => {
+        if (state.expenseSortOrder === 'oldest') return (a.date || '').localeCompare(b.date || '');
+        if (state.expenseSortOrder === 'highest') return Number(b.amount) - Number(a.amount);
+        return (b.date || '').localeCompare(a.date || '');
+      });
+
+      // Category breakdown
+      const catTotals = {};
+      trip.expenses.forEach(e => {
+        catTotals[e.category] = (catTotals[e.category] || 0) + Number(e.amount || 0);
+      });
+
+      return `
+        <div class="space-y-6 fade-in-view">
+          <!-- Top Summary Cards -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="glass-card rounded-2xl p-5">
+              <p class="text-xs font-semibold text-slate-500">Total Trip Expenses</p>
+              <p class="font-display font-extrabold text-2xl text-slate-800 mt-1">${trip.currency}${totalSpent.toLocaleString('en-IN')}</p>
+              <p class="text-[11px] text-slate-500 mt-1">${trip.expenses.length} recorded bills</p>
+            </div>
+            <div class="glass-card rounded-2xl p-5">
+              <p class="text-xs font-semibold text-slate-500">Average Cost / Person</p>
+              <p class="font-display font-extrabold text-2xl text-indigo-600 mt-1">
+                ${trip.currency}${Math.round(totalSpent / Math.max(1, trip.members.length)).toLocaleString('en-IN')}
+              </p>
+              <p class="text-[11px] text-slate-500 mt-1">Across ${trip.members.length} crew members</p>
+            </div>
+            <div class="glass-card rounded-2xl p-5">
+              <p class="text-xs font-semibold text-slate-500">Remaining Trip Budget</p>
+              <p class="font-display font-extrabold text-2xl ${trip.budget - totalSpent >= 0 ? 'text-emerald-600' : 'text-rose-600'} mt-1">
+                ${trip.currency}${(trip.budget - totalSpent).toLocaleString('en-IN')}
+              </p>
+              <p class="text-[11px] text-slate-500 mt-1">Target budget: ${trip.currency}${trip.budget.toLocaleString('en-IN')}</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Left Column: Add Expense Form (5 cols) -->
+            <div class="lg:col-span-5 space-y-5">
+              <div class="glass-card rounded-3xl p-5 sm:p-6">
+                <h3 class="font-display font-extrabold text-base text-slate-800 mb-1">Add a Shared Expense</h3>
+                <p class="text-xs text-slate-500 mb-4">Split equally, by exact ₹ amounts, or by percentages</p>
+
+                <form onsubmit="handleAddExpense(event)" class="space-y-3.5">
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Description</label>
+                    <input id="exp-title" type="text" required placeholder="e.g. Beach Shack Dinner or Taxi" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm focus:outline-none focus:border-indigo-400" />
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-xs font-semibold text-slate-700 mb-1">Amount (${trip.currency})</label>
+                      <input id="exp-amount" type="number" min="1" step="any" required placeholder="2400" oninput="updateSplitInputsPreview()" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm font-bold focus:outline-none focus:border-indigo-400" />
+                    </div>
+                    <div>
+                      <label class="block text-xs font-semibold text-slate-700 mb-1">Date</label>
+                      <input id="exp-date" type="date" required value="${trip.startDate}" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm focus:outline-none focus:border-indigo-400" />
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-xs font-semibold text-slate-700 mb-1">Paid By</label>
+                      <select id="exp-paid-by" class="w-full px-3 py-2.5 rounded-xl bg-white border border-slate-200 text-sm focus:outline-none focus:border-indigo-400">
+                        ${trip.members.map(m => `<option value="${m.id}" ${m.id === defaultPayerId ? 'selected' : ''}>${escapeHtml(m.name)}</option>`).join('')}
+                      </select>
+                    </div>
+                    <div>
+                      <label class="block text-xs font-semibold text-slate-700 mb-1">Category</label>
+                      <select id="exp-category" class="w-full px-3 py-2.5 rounded-xl bg-white border border-slate-200 text-sm focus:outline-none focus:border-indigo-400">
+                        <option value="Food">🍽️ Food & Drinks</option>
+                        <option value="Stay">🏨 Stay & Villa</option>
+                        <option value="Transport">🛵 Transport & Fuel</option>
+                        <option value="Activities">🎟️ Activities & Tickets</option>
+                        <option value="Shopping">🛍️ Shopping & Misc</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <!-- Split Mode Selector -->
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1.5">Split Method</label>
+                    <div class="grid grid-cols-3 gap-1.5 p-1 rounded-xl bg-slate-100">
+                      ${['equal', 'exact', 'percent'].map(mode => `
+                        <button type="button" onclick="setExpenseSplitMode('${mode}')"
+                          class="py-1.5 rounded-lg text-xs font-bold capitalize transition ${
+                            state.expenseSplitMode === mode ? 'bg-white text-indigo-600 shadow-2xs' : 'text-slate-600'
+                          }">
+                          ${mode === 'equal' ? 'Equal (=)' : mode === 'exact' ? 'Exact (₹)' : 'Percent (%)'}
+                        </button>
+                      `).join('')}
+                    </div>
+                  </div>
+
+                  <!-- Dynamic Member Split Inputs -->
+                  <div id="split-members-breakdown" class="space-y-2 p-3 rounded-2xl bg-slate-50/90 border border-slate-200/80">
+                    ${trip.members.map(m => `
+                      <div class="flex items-center justify-between gap-2 text-xs">
+                        <span class="font-semibold text-slate-700 flex items-center gap-1.5">
+                          <span class="w-2.5 h-2.5 rounded-full ${m.color || 'bg-indigo-500'}"></span>
+                          ${escapeHtml(m.name)}
+                        </span>
+                        <div class="flex items-center gap-1">
+                          <input type="number" step="any" min="0" data-member-split="${m.id}"
+                            ${state.expenseSplitMode === 'equal' ? 'readonly' : ''}
+                            class="w-24 px-2.5 py-1 rounded-lg border border-slate-200 text-right font-semibold ${state.expenseSplitMode === 'equal' ? 'bg-slate-100 text-slate-600' : 'bg-white text-slate-800'}" />
+                          <span class="text-slate-400 w-4">${state.expenseSplitMode === 'percent' ? '%' : trip.currency}</span>
+                        </div>
+                      </div>
+                    `).join('')}
+                  </div>
+
+                  <button type="submit" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition">
+                    + Add Expense & Update Balances
+                  </button>
+                </form>
+              </div>
+
+              <!-- Category Spending Breakdown -->
+              <div class="glass-card rounded-3xl p-5">
+                <h4 class="font-display font-extrabold text-sm text-slate-800 mb-3">Spending by Category</h4>
+                <div class="space-y-2.5">
+                  ${Object.entries(catTotals).length === 0 ? `
+                    <p class="text-xs text-slate-500">No expenses logged yet.</p>
+                  ` : Object.entries(catTotals).map(([cat, val]) => {
+                    const pct = totalSpent > 0 ? Math.round((val / totalSpent) * 100) : 0;
+                    return `
+                      <div class="space-y-1">
+                        <div class="flex justify-between text-xs">
+                          <span class="font-semibold text-slate-700">${escapeHtml(cat)}</span>
+                          <span class="font-bold text-slate-800">${trip.currency}${val.toLocaleString('en-IN')} (${pct}%)</span>
+                        </div>
+                        <div class="w-full h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                          <div class="h-full rounded-full bg-indigo-500" style="width: ${pct}%"></div>
+                        </div>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Column: Balances, Simplified Settlements & Expense Feed (7 cols) -->
+            <div class="lg:col-span-7 space-y-5">
+              <!-- Net Balances & Simplified Settlements -->
+              <div class="glass-card rounded-3xl p-5 sm:p-6">
+                <div class="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 class="font-display font-extrabold text-base text-slate-800">Simplified Settlements</h3>
+                    <p class="text-xs text-slate-500">Minimum transfers needed to settle all group debts</p>
+                  </div>
+                  <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    ${settlements.length} transfer${settlements.length === 1 ? '' : 's'}
+                  </span>
+                </div>
+
+                <!-- Member Net Balance Pills -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-4">
+                  ${trip.members.map(m => {
+                    const bal = Math.round(balances[m.id] || 0);
+                    const isPos = bal > 0;
+                    const isNeg = bal < 0;
+                    return `
+                      <div class="p-3 rounded-2xl bg-white/90 border border-slate-200/80">
+                        <p class="text-xs font-bold text-slate-700 truncate">${escapeHtml(m.name)}</p>
+                        <p class="font-display font-extrabold text-sm mt-0.5 ${isPos ? 'text-emerald-600' : isNeg ? 'text-rose-600' : 'text-slate-500'}">
+                          ${isPos ? `+${trip.currency}${bal.toLocaleString('en-IN')}` : isNeg ? `-${trip.currency}${Math.abs(bal).toLocaleString('en-IN')}` : 'Settled'}
+                        </p>
+                        <p class="text-[10px] text-slate-400">${isPos ? 'gets back' : isNeg ? 'owes' : 'all clear'}</p>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+
+                <!-- Actionable Settlement Rows -->
+                ${settlements.length === 0 ? `
+                  <div class="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-100 text-center text-xs font-semibold text-emerald-800">
+                    🎉 Everyone is completely settled up!
+                  </div>
+                ` : `
+                  <div class="space-y-2">
+                    ${settlements.map(s => {
+                      const fromM = trip.members.find(m => m.id === s.from);
+                      const toM = trip.members.find(m => m.id === s.to);
+                      if (!fromM || !toM) return '';
+                      return `
+                        <div class="flex flex-wrap items-center justify-between gap-2 p-3 rounded-2xl bg-white/95 border border-slate-200/80">
+                          <div class="flex items-center gap-2 text-xs">
+                            <span class="font-bold text-rose-600">${escapeHtml(fromM.name)}</span>
+                            <span class="text-slate-400">pays</span>
+                            <span class="font-bold text-emerald-600">${escapeHtml(toM.name)}</span>
+                          </div>
+                          <div class="flex items-center gap-2.5">
+                            <span class="font-display font-extrabold text-sm text-slate-800">${trip.currency}${s.amount.toLocaleString('en-IN')}</span>
+                            <button onclick="recordSettlement('${s.from}', '${s.to}', ${s.amount})" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold transition">
+                              ✓ Settle Up
+                            </button>
+                          </div>
+                        </div>
+                      `;
+                    }).join('')}
+                  </div>
+                `}
+              </div>
+
+              <!-- Itemized Expense History -->
+              <div class="glass-card rounded-3xl p-5 sm:p-6">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+                  <h3 class="font-display font-extrabold text-base text-slate-800">Expense Feed</h3>
+                  <select onchange="state.expenseSortOrder = this.value; renderApp();" class="px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold text-slate-700">
+                    <option value="newest" ${state.expenseSortOrder === 'newest' ? 'selected' : ''}>Sort: Newest Date</option>
+                    <option value="oldest" ${state.expenseSortOrder === 'oldest' ? 'selected' : ''}>Sort: Oldest Date</option>
+                    <option value="highest" ${state.expenseSortOrder === 'highest' ? 'selected' : ''}>Sort: Highest Amount</option>
+                  </select>
+                </div>
+
+                <div class="space-y-2.5">
+                  ${sortedExpenses.map(exp => {
+                    const payer = trip.members.find(m => m.id === exp.paidBy);
+                    return `
+                      <div class="flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-white/90 border border-slate-200/80">
+                        <div class="min-w-0">
+                          <div class="flex items-center gap-2">
+                            <span class="px-2 py-0.5 rounded-lg bg-indigo-50 text-indigo-700 text-[10px] font-bold">${escapeHtml(exp.category)}</span>
+                            <span class="text-[11px] text-slate-400">📅 ${formatShortDate(exp.date)}</span>
+                          </div>
+                          <p class="font-bold text-sm text-slate-800 truncate mt-1">${escapeHtml(exp.title)}</p>
+                          <p class="text-[11px] text-slate-500">Paid by <span class="font-semibold text-slate-700">${escapeHtml(payer ? payer.name : 'Member')}</span> · ${exp.splitType} split</p>
+                        </div>
+                        <div class="flex items-center gap-3 flex-shrink-0">
+                          <span class="font-display font-extrabold text-base text-slate-800">${trip.currency}${Number(exp.amount).toLocaleString('en-IN')}</span>
+                          <button onclick="deleteExpense('${exp.id}')" class="w-7 h-7 rounded-lg hover:bg-rose-50 text-slate-400 hover:text-rose-600 text-xs transition" title="Delete expense">🗑</button>
+                        </div>
+                      </div>
+                    `;
+                  }).join('')}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function setExpenseSplitMode(mode) {
+      state.expenseSplitMode = mode;
+      renderApp();
+    }
+
+    function updateSplitInputsPreview() {
+      const trip = getActiveTrip();
+      const amount = parseFloat(document.getElementById('exp-amount')?.value) || 0;
+      const inputs = document.querySelectorAll('[data-member-split]');
+      if (!inputs.length) return;
+
+      if (state.expenseSplitMode === 'equal') {
+        const each = trip.members.length ? (amount / trip.members.length).toFixed(2) : 0;
+        inputs.forEach(inp => { inp.value = each; });
+      } else if (state.expenseSplitMode === 'percent') {
+        const equalPct = trip.members.length ? Math.floor(100 / trip.members.length) : 0;
+        inputs.forEach((inp, idx) => {
+          if (!inp.value) {
+            inp.value = idx === 0 ? 100 - equalPct * (trip.members.length - 1) : equalPct;
+          }
+        });
+      }
+    }
+
+    function handleAddExpense(e) {
+      e.preventDefault();
+      const trip = getActiveTrip();
+      const title = document.getElementById('exp-title').value.trim();
+      const amount = parseFloat(document.getElementById('exp-amount').value);
+      const date = document.getElementById('exp-date').value;
+      const paidBy = document.getElementById('exp-paid-by').value;
+      const category = document.getElementById('exp-category').value;
+
+      if (!amount || amount <= 0) return;
+
+      const splits = {};
+      const inputs = document.querySelectorAll('[data-member-split]');
+
+      if (state.expenseSplitMode === 'equal') {
+        const share = amount / trip.members.length;
+        trip.members.forEach(m => { splits[m.id] = share; });
+      } else if (state.expenseSplitMode === 'exact') {
+        let sum = 0;
+        inputs.forEach(inp => {
+          const val = parseFloat(inp.value) || 0;
+          splits[inp.dataset.memberSplit] = val;
+          sum += val;
+        });
+        if (Math.abs(sum - amount) > 1) {
+          showToast(`Exact shares (${trip.currency}${sum}) must equal total (${trip.currency}${amount})`, 'error');
+          return;
+        }
+      } else if (state.expenseSplitMode === 'percent') {
+        let pctSum = 0;
+        inputs.forEach(inp => {
+          const pct = parseFloat(inp.value) || 0;
+          pctSum += pct;
+          splits[inp.dataset.memberSplit] = (amount * pct) / 100;
+        });
+        if (Math.abs(pctSum - 100) > 0.5) {
+          showToast(`Percentages (${pctSum}%) must add up to 100%`, 'error');
+          return;
+        }
+      }
+
+      trip.expenses.unshift({
+        id: 'exp-' + Date.now(),
+        title,
+        amount,
+        paidBy,
+        category,
+        date,
+        splitType: state.expenseSplitMode,
+        splits
+      });
+
+      saveState();
+      renderApp();
+      showToast(`Added "${title}" (${trip.currency}${amount.toLocaleString('en-IN')})`);
+    }
+
+    function recordSettlement(fromId, toId, amount) {
+      const trip = getActiveTrip();
+      const fromM = trip.members.find(m => m.id === fromId);
+      const toM = trip.members.find(m => m.id === toId);
+      if (!fromM || !toM) return;
+
+      trip.expenses.unshift({
+        id: 'settle-' + Date.now(),
+        title: `Settlement: ${fromM.name} → ${toM.name}`,
+        amount,
+        paidBy: fromId,
+        category: 'Settlement',
+        date: new Date().toISOString().slice(0, 10),
+        splitType: 'exact',
+        splits: { [toId]: amount }
+      });
+
+      saveState();
+      renderApp();
+      showToast(`Recorded ${trip.currency}${amount} settlement from ${fromM.name} to ${toM.name}!`);
+    }
+
+    function deleteExpense(expId) {
+      const trip = getActiveTrip();
+      trip.expenses = trip.expenses.filter(e => e.id !== expId);
+      saveState();
+      renderApp();
+      showToast('Expense removed.', 'info');
+    }
+
+    // ==================== SCREEN 3: COLLABORATIVE ITINERARY ====================
+    function renderItineraryScreen() {
+      const trip = getActiveTrip();
+      const dayCount = getTripDayCount(trip);
+      const days = Array.from({ length: dayCount }, (_, i) => i + 1);
+
+      const filteredStops = trip.itinerary
+        .filter(item => state.itineraryDayFilter === 'all' || Number(item.day) === Number(state.itineraryDayFilter))
+        .sort((a, b) => (a.day - b.day) || (a.time || '').localeCompare(b.time || ''));
+
+      return `
+        <div class="space-y-6 fade-in-view">
+          <!-- Calendar Day Selector Bar -->
+          <div class="glass-card rounded-3xl p-5">
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <div>
+                <h2 class="font-display font-extrabold text-lg text-slate-800">Collaborative Day-by-Day Itinerary</h2>
+                <p class="text-xs text-slate-500">Mapped to your real trip calendar (${formatFullDateRange(trip.startDate, trip.endDate)})</p>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="openEditDatesModal()" class="px-3 py-1.5 rounded-xl bg-white hover:bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-semibold transition">
+                  📅 Adjust Trip Dates
+                </button>
+              </div>
+            </div>
+
+            <!-- Horizontal Date Pills -->
+            <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+              <button onclick="state.itineraryDayFilter = 'all'; renderApp();"
+                class="px-3.5 py-2 rounded-2xl text-xs font-bold whitespace-nowrap border transition ${
+                  state.itineraryDayFilter === 'all'
+                    ? 'bg-indigo-600 text-white border-indigo-600'
+                    : 'bg-white/90 text-slate-700 border-slate-200 hover:border-indigo-300'
+                }">
+                All Days (${trip.itinerary.length})
+              </button>
+              ${days.map(d => {
+                const count = trip.itinerary.filter(i => Number(i.day) === d).length;
+                const active = Number(state.itineraryDayFilter) === d;
+                return `
+                  <button onclick="state.itineraryDayFilter = ${d}; renderApp();"
+                    class="px-3.5 py-2 rounded-2xl text-left border whitespace-nowrap transition ${
+                      active
+                        ? 'bg-indigo-600 text-white border-indigo-600'
+                        : 'bg-white/90 text-slate-700 border-slate-200 hover:border-indigo-300'
+                    }">
+                    <div class="text-xs font-bold">Day ${d} · ${getDateForTripDay(trip, d)}</div>
+                    <div class="text-[10px] ${active ? 'text-indigo-100' : 'text-slate-400'}">${count} stop${count === 1 ? '' : 's'}</div>
+                  </button>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Add Stop Form (4 cols) -->
+            <div class="lg:col-span-4">
+              <div class="glass-card rounded-3xl p-5">
+                <h3 class="font-display font-extrabold text-base text-slate-800 mb-3">Add Itinerary Stop</h3>
+                <form onsubmit="handleAddItineraryStop(event)" class="space-y-3">
+                  <div class="grid grid-cols-2 gap-2.5">
+                    <div>
+                      <label class="block text-xs font-semibold text-slate-700 mb-1">Trip Day</label>
+                      <select id="itin-day" class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-xs font-semibold">
+                        ${days.map(d => `<option value="${d}" ${Number(state.itineraryDayFilter) === d ? 'selected' : ''}>Day ${d} (${getDateForTripDay(trip, d)})</option>`).join('')}
+                      </select>
+                    </div>
+                    <div>
+                      <label class="block text-xs font-semibold text-slate-700 mb-1">Time</label>
+                      <input id="itin-time" type="time" required value="15:00" class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-xs font-semibold" />
+                    </div>
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Activity / Stop Name</label>
+                    <input id="itin-title" type="text" required placeholder="e.g. Sunset Kayaking or Cafe Hopping" class="w-full px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-sm" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Location / Landmark</label>
+                    <input id="itin-location" type="text" required placeholder="e.g. Palolem Beach" class="w-full px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-sm" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Notes</label>
+                    <input id="itin-notes" type="text" placeholder="Booking info, dress code, etc." class="w-full px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-xs" />
+                  </div>
+                  <button type="submit" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs transition">
+                    + Add to Timeline
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            <!-- Timeline Cards (8 cols) -->
+            <div class="lg:col-span-8 space-y-3">
+              ${filteredStops.length === 0 ? `
+                <div class="glass-card rounded-3xl p-8 text-center">
+                  <p class="text-sm font-bold text-slate-700">No activities planned for this day yet.</p>
+                  <p class="text-xs text-slate-500 mt-1">Add a stop using the form on the left to build your schedule!</p>
+                </div>
+              ` : filteredStops.map(stop => `
+                <div class="glass-card rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div class="space-y-1">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <span class="px-2.5 py-0.5 rounded-lg bg-indigo-50 text-indigo-700 text-[11px] font-bold">Day ${stop.day} · ${getDateForTripDay(trip, stop.day)}</span>
+                      <span class="px-2.5 py-0.5 rounded-lg bg-slate-100 text-slate-700 text-[11px] font-mono font-bold">⏰ ${escapeHtml(stop.time)}</span>
+                      ${stop.mustDo ? '<span class="px-2 py-0.5 rounded-lg bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold">★ Must-Do</span>' : ''}
+                    </div>
+                    <h4 class="font-display font-extrabold text-base text-slate-800">${escapeHtml(stop.title)}</h4>
+                    <p class="text-xs text-slate-600">📍 ${escapeHtml(stop.location)} ${stop.notes ? `· <span class="text-slate-500">${escapeHtml(stop.notes)}</span>` : ''}</p>
+                  </div>
+
+                  <div class="flex items-center gap-2 self-end sm:self-center flex-shrink-0">
+                    <button onclick="toggleStopMustDo('${stop.id}')" class="px-2.5 py-1.5 rounded-xl border text-xs font-bold transition ${stop.mustDo ? 'bg-amber-50 border-amber-200 text-amber-700' : 'bg-white border-slate-200 text-slate-500'}" title="Toggle Must-Do">
+                      ★
+                    </button>
+                    <button onclick="upvoteItineraryStop('${stop.id}')" class="px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-bold transition">
+                      ▲ ${stop.votes || 1}
+                    </button>
+                    <button onclick="deleteItineraryStop('${stop.id}')" class="px-2.5 py-1.5 rounded-xl bg-white hover:bg-rose-50 text-slate-400 hover:text-rose-600 border border-slate-200 text-xs transition">
+                      ✕
+                    </button>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function handleAddItineraryStop(e) {
+      e.preventDefault();
+      const trip = getActiveTrip();
+      const day = Number(document.getElementById('itin-day').value) || 1;
+      const time = document.getElementById('itin-time').value;
+      const title = document.getElementById('itin-title').value.trim();
+      const location = document.getElementById('itin-location').value.trim();
+      const notes = document.getElementById('itin-notes').value.trim();
+
+      const offsetLat = trip.hubCoords.lat + (Math.random() - 0.5) * 0.08;
+      const offsetLng = trip.hubCoords.lng + (Math.random() - 0.5) * 0.08;
+
+      trip.itinerary.push({
+        id: 'itin-' + Date.now(),
+        day,
+        time,
+        title,
+        location,
+        lat: offsetLat,
+        lng: offsetLng,
+        votes: 1,
+        mustDo: false,
+        notes
+      });
+
+      saveState();
+      renderApp();
+      showToast(`Added "${title}" to Day ${day}!`);
+    }
+
+    function upvoteItineraryStop(id) {
+      const trip = getActiveTrip();
+      const item = trip.itinerary.find(i => i.id === id);
+      if (item) {
+        item.votes = (item.votes || 0) + 1;
+        saveState();
+        renderApp();
+      }
+    }
+
+    function toggleStopMustDo(id) {
+      const trip = getActiveTrip();
+      const item = trip.itinerary.find(i => i.id === id);
+      if (item) {
+        item.mustDo = !item.mustDo;
+        saveState();
+        renderApp();
+      }
+    }
+
+    function deleteItineraryStop(id) {
+      const trip = getActiveTrip();
+      trip.itinerary = trip.itinerary.filter(i => i.id !== id);
+      saveState();
+      renderApp();
+    }
+
+    // ==================== SCREEN 4: GROUP POLLS ====================
+    function renderPollsScreen() {
+      const trip = getActiveTrip();
+      const voterId = getCurrentMemberIdForTrip(trip);
+
+      return `
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 fade-in-view">
+          <!-- Create Poll Form (4 cols) -->
+          <div class="lg:col-span-4">
+            <div class="glass-card rounded-3xl p-5 sm:p-6">
+              <h3 class="font-display font-extrabold text-base text-slate-800 mb-1">Create a Group Poll</h3>
+              <p class="text-xs text-slate-500 mb-4">Decide hotels, activities, or restaurants democratically</p>
+              <form onsubmit="handleCreatePoll(event)" class="space-y-3">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">Question</label>
+                  <input id="poll-question" type="text" required placeholder="e.g. Rent scooters or a 7-seater SUV?" class="w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">Option 1</label>
+                  <input id="poll-opt-1" type="text" required placeholder="Option A" class="w-full px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-xs" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">Option 2</label>
+                  <input id="poll-opt-2" type="text" required placeholder="Option B" class="w-full px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-xs" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">Option 3 (Optional)</label>
+                  <input id="poll-opt-3" type="text" placeholder="Option C" class="w-full px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-xs" />
+                </div>
+                <button type="submit" class="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-xs transition">
+                  📊 Launch Poll
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Active Polls List (8 cols) -->
+          <div class="lg:col-span-8 space-y-4">
+            ${(trip.polls || []).length === 0 ? `
+              <div class="glass-card rounded-3xl p-8 text-center">
+                <p class="text-sm font-bold text-slate-700">No polls created for this trip yet.</p>
+                <p class="text-xs text-slate-500 mt-1">Start a quick vote using the form on the left!</p>
+              </div>
+            ` : trip.polls.map(poll => {
+              const totalVotes = poll.options.reduce((sum, o) => sum + o.votes.length, 0);
+              return `
+                <div class="glass-card rounded-3xl p-5 sm:p-6 space-y-4">
+                  <div class="flex items-start justify-between gap-2">
+                    <div>
+                      <span class="text-[11px] font-semibold text-indigo-600">Asked by ${escapeHtml(poll.createdBy || 'Crew')}</span>
+                      <h4 class="font-display font-extrabold text-base text-slate-800 mt-0.5">${escapeHtml(poll.question)}</h4>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 text-[11px] font-bold">${totalVotes} vote${totalVotes === 1 ? '' : 's'}</span>
+                  </div>
+
+                  <div class="space-y-2.5">
+                    ${poll.options.map(opt => {
+                      const pct = totalVotes > 0 ? Math.round((opt.votes.length / totalVotes) * 100) : 0;
+                      const voted = opt.votes.includes(voterId);
+                      return `
+                        <button onclick="voteInPoll('${poll.id}', '${opt.id}')"
+                          class="w-full text-left p-3 rounded-2xl border relative overflow-hidden transition ${
+                            voted ? 'border-indigo-500 bg-indigo-50/40' : 'border-slate-200/90 bg-white/90 hover:border-indigo-300'
+                          }">
+                          <div class="absolute inset-y-0 left-0 bg-indigo-100/60 transition-all duration-300" style="width: ${pct}%"></div>
+                          <div class="relative flex items-center justify-between gap-2 text-xs">
+                            <span class="font-bold text-slate-800 flex items-center gap-2">
+                              <span>${voted ? '✅' : '⭕'}</span>
+                              <span>${escapeHtml(opt.text)}</span>
+                            </span>
+                            <span class="font-display font-extrabold text-indigo-700">${pct}% (${opt.votes.length})</span>
+                          </div>
+                        </button>
+                      `;
+                    }).join('')}
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function getCurrentMemberIdForTrip(trip) {
+      if (state.currentUser) {
+        const m = trip.members.find(mem => mem.name.toLowerCase() === state.currentUser.name.toLowerCase());
+        if (m) return m.id;
+      }
+      return trip.members[0]?.id || 'm1';
+    }
+
+    function handleCreatePoll(e) {
+      e.preventDefault();
+      const trip = getActiveTrip();
+      const question = document.getElementById('poll-question').value.trim();
+      const o1 = document.getElementById('poll-opt-1').value.trim();
+      const o2 = document.getElementById('poll-opt-2').value.trim();
+      const o3 = document.getElementById('poll-opt-3').value.trim();
+
+      const options = [o1, o2, o3].filter(Boolean).map((text, idx) => ({
+        id: 'opt-' + Date.now() + '-' + idx,
+        text,
+        votes: []
+      }));
+
+      trip.polls.unshift({
+        id: 'poll-' + Date.now(),
+        question,
+        createdBy: state.currentUser ? state.currentUser.name : (trip.members[0]?.name || 'Organizer'),
+        options
+      });
+
+      saveState();
+      renderApp();
+      showToast('Group poll published!');
+    }
+
+    function voteInPoll(pollId, optionId) {
+      const trip = getActiveTrip();
+      const poll = trip.polls.find(p => p.id === pollId);
+      if (!poll) return;
+      const voterId = getCurrentMemberIdForTrip(trip);
+
+      poll.options.forEach(opt => {
+        opt.votes = opt.votes.filter(id => id !== voterId);
+        if (opt.id === optionId) {
+          opt.votes.push(voterId);
+        }
+      });
+
+      saveState();
+      renderApp();
+    }
+
+    // ==================== SCREEN 5: MULTI-CITY MEETUP PLANNER ====================
+    function renderMeetupScreen() {
+      const trip = getActiveTrip();
+      const totalTransit = trip.members.reduce((sum, m) => sum + Number(m.transitCost || 0), 0);
+      const uniqueCities = [...new Set(trip.members.map(m => m.city).filter(Boolean))];
+
+      return `
+        <div class="space-y-6 fade-in-view">
+          <div class="glass-card rounded-3xl p-6">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <h2 class="font-display font-extrabold text-lg text-slate-800">Multi-City Meetup & Arrival Sync</h2>
+                <p class="text-xs text-slate-500">Coordinate friends flying or riding in from <span class="font-bold text-indigo-600">${uniqueCities.join(', ')}</span> into <span class="font-bold text-slate-700">${escapeHtml(trip.destination)}</span></p>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="px-4 py-2 rounded-2xl bg-indigo-50 border border-indigo-100 text-right">
+                  <p class="text-[10px] font-bold uppercase text-indigo-500">Combined Transit</p>
+                  <p class="font-display font-extrabold text-sm text-indigo-800">${trip.currency}${totalTransit.toLocaleString('en-IN')}</p>
+                </div>
+                <button onclick="switchTab('crew')" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition">
+                  👥 Manage Crew
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            ${trip.members.map(m => `
+              <div class="glass-card rounded-3xl p-5 space-y-3.5">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <span class="w-10 h-10 rounded-2xl ${m.color || 'bg-indigo-500'} text-white font-bold flex items-center justify-center text-base">
+                      ${m.avatar || escapeHtml(m.name[0])}
+                    </span>
+                    <div>
+                      <h4 class="font-display font-extrabold text-sm text-slate-800">${escapeHtml(m.name)}</h4>
+                      <p class="text-xs text-slate-500">From <span class="font-bold text-slate-700">${escapeHtml(m.city)}</span> → ${escapeHtml(trip.destination)}</p>
+                    </div>
+                  </div>
+                  <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    ${escapeHtml(m.status)}
+                  </span>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2.5 pt-1">
+                  <div>
+                    <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Travel Mode</label>
+                    <select onchange="updateMemberMeetup('${m.id}', 'mode', this.value)" class="w-full px-2.5 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-semibold">
+                      ${['Flight', 'Train', 'Road/Car', 'Bus'].map(mode => `<option value="${mode}" ${m.mode === mode ? 'selected' : ''}>${mode}</option>`).join('')}
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Arrival ETA</label>
+                    <input type="datetime-local" value="${m.arrivalTime || `${trip.startDate}T12:00`}" onchange="updateMemberMeetup('${m.id}', 'arrivalTime', this.value)" class="w-full px-2 py-1.5 rounded-xl bg-white border border-slate-200 text-[11px] font-semibold" />
+                  </div>
+                  <div>
+                    <label class="block text-[10px] font-bold uppercase text-slate-400 mb-1">Ticket (${trip.currency})</label>
+                    <input type="number" min="0" value="${m.transitCost || 0}" onchange="updateMemberMeetup('${m.id}', 'transitCost', Number(this.value))" class="w-full px-2.5 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-bold" />
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    function updateMemberMeetup(memberId, field, value) {
+      const trip = getActiveTrip();
+      const member = trip.members.find(m => m.id === memberId);
+      if (member) {
+        member[field] = value;
+        saveState();
+        renderApp();
+        showToast(`Updated ${member.name}'s travel schedule.`);
+      }
+    }
+
+    // ==================== SCREEN 7: CREW & INVITES ====================
+    function renderCrewScreen() {
+      const trip = getActiveTrip();
+      const joinUrl = buildJoinableTripUrl(trip);
+
+      return `
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 fade-in-view">
+          <!-- Invite Card & Add Member (5 cols) -->
+          <div class="lg:col-span-5 space-y-5">
+            <div class="glass-card rounded-3xl p-5 sm:p-6 space-y-4">
+              <div>
+                <h3 class="font-display font-extrabold text-base text-slate-800">Joinable Trip Invite Link</h3>
+                <p class="text-xs text-slate-500 mt-0.5">Anyone with this link or code can join <span class="font-bold text-slate-700">${escapeHtml(trip.name)}</span></p>
+              </div>
+
+              <div class="p-3.5 rounded-2xl bg-indigo-50/80 border border-indigo-100 flex items-center justify-between">
+                <div>
+                  <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-500">Trip Invite Code</span>
+                  <p class="font-display font-extrabold text-lg text-indigo-700 tracking-wider">${trip.inviteCode}</p>
+                </div>
+                <button onclick="openShareModal()" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition">
+                  Copy & Share
+                </button>
+              </div>
+
+              <div class="space-y-1.5">
+                <label class="block text-[11px] font-semibold text-slate-600">Direct Join URL</label>
+                <input type="text" readonly value="${escapeHtml(joinUrl)}" onclick="this.select()" class="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-[11px] font-mono text-slate-600" />
+              </div>
+            </div>
+
+            <div class="glass-card rounded-3xl p-5 sm:p-6">
+              <h3 class="font-display font-extrabold text-base text-slate-800 mb-3">Add Friend Directly</h3>
+              <form onsubmit="handleAddCrewMember(event)" class="space-y-3">
+                <div class="grid grid-cols-2 gap-2.5">
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Friend's Name</label>
+                    <input id="crew-name" type="text" required placeholder="e.g. Neha" class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-sm" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Origin City</label>
+                    <input id="crew-city" type="text" required placeholder="e.g. Rajkot" class="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-sm" />
+                  </div>
+                </div>
+                <button type="submit" class="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition">
+                  + Add to Trip Crew
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <!-- Crew Roster & RSVP Toggles (7 cols) -->
+          <div class="lg:col-span-7">
+            <div class="glass-card rounded-3xl p-5 sm:p-6">
+              <div class="flex items-center justify-between mb-4">
+                <div>
+                  <h3 class="font-display font-extrabold text-base text-slate-800">Trip Crew & RSVPs (${trip.members.length})</h3>
+                  <p class="text-xs text-slate-500">Tap any status badge to cycle Confirmed / Maybe / Pending</p>
+                </div>
+              </div>
+
+              <div class="space-y-2.5">
+                ${trip.members.map(m => `
+                  <div class="flex items-center justify-between gap-3 p-3.5 rounded-2xl bg-white/90 border border-slate-200/80">
+                    <div class="flex items-center gap-3">
+                      <span class="w-10 h-10 rounded-2xl ${m.color || 'bg-indigo-500'} text-white font-bold flex items-center justify-center text-sm">
+                        ${m.avatar || escapeHtml(m.name[0])}
+                      </span>
+                      <div>
+                        <p class="font-bold text-sm text-slate-800">${escapeHtml(m.name)} <span class="text-[11px] font-medium text-slate-400">· ${escapeHtml(m.role || 'Member')}</span></p>
+                        <p class="text-xs text-slate-500">📍 ${escapeHtml(m.city)}</p>
+                      </div>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                      <button onclick="cycleMemberRsvp('${m.id}')"
+                        class="px-3 py-1.5 rounded-xl text-xs font-bold border transition ${
+                          m.status === 'Confirmed'
+                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                            : m.status === 'Maybe'
+                            ? 'bg-amber-50 text-amber-700 border-amber-200'
+                            : 'bg-slate-100 text-slate-600 border-slate-200'
+                        }">
+                        ${escapeHtml(m.status)}
+                      </button>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function handleAddCrewMember(e) {
+      e.preventDefault();
+      const trip = getActiveTrip();
+      const name = document.getElementById('crew-name').value.trim();
+      const city = document.getElementById('crew-city').value.trim();
+      const colors = ['bg-indigo-500', 'bg-emerald-500', 'bg-sky-500', 'bg-amber-500', 'bg-rose-500', 'bg-violet-500'];
+
+      trip.members.push({
+        id: 'm-' + Date.now(),
+        name,
+        city,
+        status: 'Confirmed',
+        color: colors[trip.members.length % colors.length],
+        avatar: '🎒',
+        role: 'Member',
+        mode: 'Flight',
+        arrivalTime: `${trip.startDate}T12:00`,
+        transitCost: 0
+      });
+
+      saveState();
+      renderApp();
+      showToast(`${name} added to ${trip.name}!`);
+    }
+
+    function cycleMemberRsvp(memberId) {
+      const trip = getActiveTrip();
+      const member = trip.members.find(m => m.id === memberId);
+      if (!member) return;
+      const order = ['Confirmed', 'Maybe', 'Pending'];
+      const next = order[(order.indexOf(member.status) + 1) % order.length];
+      member.status = next;
+      saveState();
+      renderApp();
+    }
+
+    // ==================== TRIP CREATION & DATE EDITING ====================
+    function openNewTripModal() {
+      const today = new Date();
+      const start = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 14);
+      const end = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 17);
+      document.getElementById('new-trip-start').value = start.toISOString().slice(0, 10);
+      document.getElementById('new-trip-end').value = end.toISOString().slice(0, 10);
+      openModal('new-trip-modal');
+    }
+
+    function handleCreateTrip(e) {
+      e.preventDefault();
+      const name = document.getElementById('new-trip-name').value.trim();
+      const destination = document.getElementById('new-trip-dest').value.trim();
+      const budget = Number(document.getElementById('new-trip-budget').value) || 40000;
+      const startDate = document.getElementById('new-trip-start').value;
+      const endDate = document.getElementById('new-trip-end').value;
+      const tagline = document.getElementById('new-trip-tagline').value.trim();
+
+      if (endDate < startDate) {
+        showToast('End date must be on or after start date.', 'error');
+        return;
+      }
+
+      const coords = getCoordsForCity(destination, { lat: 24.5854, lng: 73.7125 });
+      const slug = destination.split(',')[0].replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 8) || 'TRIP';
+      const organizerName = state.currentUser ? state.currentUser.name : 'Aarav';
+      const organizerCity = state.currentUser ? state.currentUser.city : 'Jamnagar';
+      const destLower = destination.toLowerCase();
+      const terrainType = destLower.includes('beach') || destLower.includes('goa') || destLower.includes('diu')
+        ? 'coastal'
+        : destLower.includes('manali') || destLower.includes('shimla') || destLower.includes('leh') || destLower.includes('mountain')
+        ? 'mountain'
+        : 'lake';
+
+      const newTrip = {
+        id: 'trip-' + Date.now(),
+        inviteCode: `KARO-${slug}`,
+        name,
+        destination,
+        terrainType,
+        startDate,
+        endDate,
+        budget,
+        currency: '₹',
+        tagline: tagline || `Group adventure in ${destination}`,
+        hubCoords: { lat: coords.lat, lng: coords.lng, label: `${destination} Central Hub` },
+        members: [
+          {
+            id: 'm-' + Date.now(),
+            name: organizerName,
+            city: organizerCity,
+            status: 'Confirmed',
+            color: 'bg-indigo-500',
+            avatar: state.currentUser?.avatar || '🧭',
+            role: 'Organizer',
+            mode: 'Flight',
+            arrivalTime: `${startDate}T11:00`,
+            transitCost: 0
+          }
+        ],
+        expenses: [],
+        itinerary: [
+          {
+            id: 'itin-' + Date.now(),
+            day: 1,
+            time: '14:00',
+            title: `Arrive & Check-in at ${destination}`,
+            location: destination,
+            lat: coords.lat,
+            lng: coords.lng,
+            votes: 1,
+            mustDo: true,
+            notes: 'Kickoff meetup!'
+          }
+        ],
+        curatedSites: [
+          {
+            id: 'site-' + Date.now(),
+            name: `${destination.split(',')[0]} Sunset Viewpoint`,
+            category: 'Viewpoint',
+            lat: coords.lat + 0.028,
+            lng: coords.lng - 0.025,
+            desc: `Popular scenic sunset spot in ${destination}`
+          }
+        ],
+        polls: []
+      };
+
+      state.trips.unshift(newTrip);
+      state.activeTripId = newTrip.id;
+      saveState();
+      closeModal('new-trip-modal');
+      renderHeader();
+      renderApp();
+      showToast(`Created "${name}" (${newTrip.inviteCode})!`);
+    }
+
+    function openEditDatesModal() {
+      const trip = getActiveTrip();
+      const sInp = document.getElementById('edit-trip-start');
+      const eInp = document.getElementById('edit-trip-end');
+      sInp.value = trip.startDate;
+      eInp.value = trip.endDate;
+      updateEditDatesPreview();
+      sInp.oninput = updateEditDatesPreview;
+      eInp.oninput = updateEditDatesPreview;
+      openModal('edit-dates-modal');
+    }
+
+    function updateEditDatesPreview() {
+      const s = document.getElementById('edit-trip-start').value;
+      const e = document.getElementById('edit-trip-end').value;
+      const box = document.getElementById('edit-dates-preview');
+      if (!s || !e || e < s) {
+        box.textContent = '⚠️ Please choose an end date on or after the start date.';
+        return;
+      }
+      const dCount = Math.round((parseISODate(e) - parseISODate(s)) / (1000 * 60 * 60 * 24)) + 1;
+      box.textContent = `📅 ${formatFullDateRange(s, e)} · ${dCount} Day${dCount === 1 ? '' : 's'} / ${Math.max(1, dCount - 1)} Night${dCount - 1 === 1 ? '' : 's'}`;
+    }
+
+    function handleSaveTripDates(e) {
+      e.preventDefault();
+      const trip = getActiveTrip();
+      const s = document.getElementById('edit-trip-start').value;
+      const end = document.getElementById('edit-trip-end').value;
+      if (end < s) {
+        showToast('End date cannot be earlier than start date.', 'error');
+        return;
+      }
+      trip.startDate = s;
+      trip.endDate = end;
+      saveState();
+      closeModal('edit-dates-modal');
+      renderHeader();
+      renderApp();
+      showToast('Trip dates updated across itinerary & calendar!');
+    }
+
+    // ==================== SUBTLE CURSOR & GLASS SPECULAR EFFECT ====================
+    function initCursorAndGlassEffects() {
+      const ring = document.getElementById('custom-cursor-ring');
+      let mouseX = -100, mouseY = -100;
+      let ringX = -100, ringY = -100;
+
+      updateCursorVisibility();
+
+      document.addEventListener('mousemove', (e) => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+
+        const card = e.target.closest('.glass-card');
+        if (card) {
+          const rect = card.getBoundingClientRect();
+          card.style.setProperty('--mx', `${e.clientX - rect.left}px`);
+          card.style.setProperty('--my', `${e.clientY - rect.top}px`);
+        }
+
+        if (ring && state.subtleCursor) {
+          const interactive = e.target.closest('button, a, input, select, [onclick]');
+          if (interactive) ring.classList.add('cursor-hover');
+          else ring.classList.remove('cursor-hover');
+        }
+      }, { passive: true });
+
+      function animateCursor() {
+        if (ring && state.subtleCursor) {
+          ringX += (mouseX - ringX) * 0.24;
+          ringY += (mouseY - ringY) * 0.24;
+          const offset = ring.classList.contains('cursor-hover') ? 16 : 11;
+          ring.style.transform = `translate3d(${ringX - offset}px, ${ringY - offset}px, 0)`;
+        }
+        requestAnimationFrame(animateCursor);
+      }
+      requestAnimationFrame(animateCursor);
+    }
+
+    function toggleCursorEffect() {
+      state.subtleCursor = !state.subtleCursor;
+      saveState();
+      updateCursorVisibility();
+    }
+
+    function updateCursorVisibility() {
+      const ring = document.getElementById('custom-cursor-ring');
+      const label = document.getElementById('cursor-toggle-label');
+      if (ring) ring.style.opacity = state.subtleCursor ? '1' : '0';
+      if (label) label.textContent = state.subtleCursor ? 'Cursor: Subtle' : 'Cursor: Off';
+    }
+
+    // ==================== MODAL & TOAST UTILITIES ====================
+    function openModal(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.classList.remove('hidden');
+        el.classList.add('flex');
+      }
+    }
+
+    function closeModal(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.classList.add('hidden');
+        el.classList.remove('flex');
+      }
+    }
+
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+      const toast = document.createElement('div');
+      const colors =
+        type === 'error'
+          ? 'bg-rose-600 text-white'
+          : type === 'info'
+          ? 'bg-slate-800 text-white'
+          : 'bg-indigo-600 text-white';
+
+      toast.className = `pointer-events-auto px-4 py-3 rounded-2xl shadow-lg text-xs font-semibold flex items-center justify-between gap-3 fade-in-view ${colors}`;
+      toast.innerHTML = `<span>${escapeHtml(message)}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 200ms ease-out';
+        setTimeout(() => toast.remove(), 220);
+      }, 3200);
+    }
+
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    // ==================== BOOTSTRAP APP ====================
+    window.addEventListener('DOMContentLoaded', () => {
+      loadPersistedState();
+      renderHeader();
+      renderApp();
+      initCursorAndGlassEffects();
+    });
+  </script>
+</body>
+</html>
